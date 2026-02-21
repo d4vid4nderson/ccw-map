@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     height: '100%',
     width: '60%',
     position: 'absolute',
-    left: 0,
+    right: 0,
     top: 0,
   },
   listContainer: {
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     height: '100%',
     width: '40%',
     position: 'absolute',
-    right: 0,
+    left: 0,
     top: 0,
   },
   listHeader: {

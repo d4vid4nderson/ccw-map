@@ -46,7 +46,7 @@ export function WebMap({ selectedState, onStatePress, getStateColor }: WebMapPro
 
       const mapInstance = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/david4nderson/cmlwkl3dj000501s7dymn31sm',
+        style: 'mapbox://styles/mapbox/dark-v11',
         center: US_CENTER,
         zoom: US_ZOOM,
         minZoom: 2,

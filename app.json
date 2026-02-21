@@ -28,7 +28,8 @@
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro",
-      "output": "single"
+      "output": "single",
+      "index": "./web/index.html"
     },
     "plugins": [
       [

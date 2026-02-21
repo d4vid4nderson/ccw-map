@@ -245,12 +245,13 @@ const styles = StyleSheet.create({
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    marginHorizontal: -4,
     marginBottom: 16,
   },
   statBox: {
     flex: 1,
-    minWidth: '45%',
+    minWidth: '44%',
+    margin: 4,
     backgroundColor: Colors.surface,
     borderRadius: 10,
     padding: 14,

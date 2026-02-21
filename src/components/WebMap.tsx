@@ -4,7 +4,8 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { MAPBOX_ACCESS_TOKEN, US_CENTER, US_ZOOM, US_STATES_GEOJSON_URL } from '../constants/mapbox';
 import { stateNameToCode } from '../hooks/useMapbox';
-import { Colors } from '../constants/colors';
+import { useTheme } from '../context/ThemeContext';
+import { Theme } from '../constants/colors';
 
 interface WebMapProps {
   selectedState: string | null;
@@ -16,6 +17,7 @@ export function WebMap({ selectedState, onStatePress, getStateColor }: WebMapPro
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { theme } = useTheme();
 
   const updateColors = useCallback(() => {
     if (!map.current || !map.current.getSource('states')) return;
@@ -24,14 +26,25 @@ export function WebMap({ selectedState, onStatePress, getStateColor }: WebMapPro
     for (const code of Object.values(stateNameToCode)) {
       colorExpression.push(code, getStateColor(code));
     }
-    colorExpression.push(Colors.reciprocity.default);
+    colorExpression.push(theme.reciprocity.default);
 
     try {
       map.current.setPaintProperty('state-fills', 'fill-color', colorExpression as any);
     } catch (e) {
       // Layer may not be ready yet
     }
-  }, [getStateColor]);
+  }, [getStateColor, theme]);
+
+  // Update border colors when theme changes
+  useEffect(() => {
+    if (!map.current || !map.current.getSource('states')) return;
+    try {
+      map.current.setPaintProperty('state-borders', 'line-color', theme.map.borderColor);
+      map.current.setPaintProperty('state-borders', 'line-opacity', theme.map.borderOpacity);
+    } catch (e) {
+      // Layer may not be ready yet
+    }
+  }, [theme]);
 
   useEffect(() => {
     if (Platform.OS !== 'web' || !mapContainer.current) return;
@@ -81,7 +94,7 @@ export function WebMap({ selectedState, onStatePress, getStateColor }: WebMapPro
           for (const code of Object.values(stateNameToCode)) {
             colorExpression.push(code, getStateColor(code));
           }
-          colorExpression.push(Colors.reciprocity.default);
+          colorExpression.push(theme.reciprocity.default);
 
           // Hide country labels (e.g. "United States") so they don't cover states
           const styleLayers = mapInstance.getStyle().layers || [];
@@ -106,9 +119,9 @@ export function WebMap({ selectedState, onStatePress, getStateColor }: WebMapPro
             type: 'line',
             source: 'states',
             paint: {
-              'line-color': '#ffffff',
+              'line-color': theme.map.borderColor,
               'line-width': 1,
-              'line-opacity': 0.4,
+              'line-opacity': theme.map.borderOpacity,
             },
           });
 
@@ -157,38 +170,42 @@ export function WebMap({ selectedState, onStatePress, getStateColor }: WebMapPro
     updateColors();
   }, [selectedState, updateColors]);
 
+  const s = makeStyles(theme);
+
   if (Platform.OS !== 'web') {
-    return <View style={styles.container} />;
+    return <View style={s.container} />;
   }
 
   if (error) {
     return (
-      <View style={[styles.container, styles.errorContainer]}>
-        <Text style={styles.errorText}>{error}</Text>
+      <View style={[s.container, s.errorContainer]}>
+        <Text style={s.errorText}>{error}</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={s.container}>
       <div ref={mapContainer as any} style={{ width: '100%', height: '100%' }} />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  errorContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  errorText: {
-    color: Colors.warning,
-    fontSize: 14,
-    textAlign: 'center',
-  },
-});
+function makeStyles(theme: Theme) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    errorContainer: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+    },
+    errorText: {
+      color: theme.warning,
+      fontSize: 14,
+      textAlign: 'center',
+    },
+  });
+}

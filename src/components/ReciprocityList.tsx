@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList } from 'react-native';
-import { Colors } from '../constants/colors';
+import { View, Text, StyleSheet } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
+import { Theme } from '../constants/colors';
 import { getReciprocityStatus, reciprocityData, permitlessCarryStates } from '../data/reciprocity';
 import { stateLaws } from '../data/stateLaws';
 import { codeToStateName } from '../hooks/useMapbox';
@@ -20,11 +21,8 @@ function statusLabel(status: ReciprocityStatus): string {
   }
 }
 
-function statusColor(status: ReciprocityStatus): string {
-  return Colors.reciprocity[status] || Colors.textSecondary;
-}
-
 export function ReciprocityList({ stateCode }: ReciprocityListProps) {
+  const { theme } = useTheme();
   const allStates = Object.keys(stateLaws).filter((s) => s !== stateCode);
 
   const grouped = allStates.reduce(
@@ -44,36 +42,38 @@ export function ReciprocityList({ stateCode }: ReciprocityListProps) {
   ];
 
   const canCarryCount =
-    (grouped['permitless']?.length || 0) + (grouped['full']?.length || 0) + 1; // +1 home
+    (grouped['permitless']?.length || 0) + (grouped['full']?.length || 0) + 1;
+
+  const s = makeStyles(theme);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.summaryBar}>
-        <Text style={styles.summaryText}>
+    <View style={s.container}>
+      <View style={s.summaryBar}>
+        <Text style={s.summaryText}>
           Your {codeToStateName[stateCode]} permit lets you carry in{' '}
-          <Text style={styles.summaryHighlight}>{canCarryCount}</Text> states
+          <Text style={s.summaryHighlight}>{canCarryCount}</Text> states
         </Text>
       </View>
 
       {sections.map((section) =>
         section.states.length > 0 ? (
-          <View key={section.status} style={styles.section}>
-            <View style={styles.sectionHeader}>
+          <View key={section.status} style={s.section}>
+            <View style={s.sectionHeader}>
               <View
                 style={[
-                  styles.statusDot,
-                  { backgroundColor: statusColor(section.status) },
+                  s.statusDot,
+                  { backgroundColor: theme.reciprocity[section.status] || theme.textSecondary },
                 ]}
               />
-              <Text style={styles.sectionTitle}>
+              <Text style={s.sectionTitle}>
                 {statusLabel(section.status)} ({section.states.length})
               </Text>
             </View>
-            <View style={styles.stateGrid}>
+            <View style={s.stateGrid}>
               {section.states.sort().map((code) => (
-                <View key={code} style={styles.stateChip}>
-                  <Text style={styles.stateChipCode}>{code}</Text>
-                  <Text style={styles.stateChipName} numberOfLines={1}>
+                <View key={code} style={s.stateChip}>
+                  <Text style={s.stateChipCode}>{code}</Text>
+                  <Text style={s.stateChipName} numberOfLines={1}>
                     {codeToStateName[code]}
                   </Text>
                 </View>
@@ -86,70 +86,72 @@ export function ReciprocityList({ stateCode }: ReciprocityListProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  summaryBar: {
-    backgroundColor: Colors.surfaceLight,
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 16,
-  },
-  summaryText: {
-    color: Colors.text,
-    fontSize: 15,
-    textAlign: 'center',
-  },
-  summaryHighlight: {
-    fontWeight: '700',
-    fontSize: 18,
-    color: '#1a1a1a',
-  },
-  section: {
-    marginBottom: 16,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  statusDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: 8,
-  },
-  sectionTitle: {
-    color: Colors.text,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  stateGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginHorizontal: -3,
-  },
-  stateChip: {
-    backgroundColor: Colors.surface,
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 5,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    flexDirection: 'row',
-    alignItems: 'center',
-    margin: 3,
-  },
-  stateChipCode: {
-    color: Colors.text,
-    fontSize: 12,
-    fontWeight: '700',
-    marginRight: 4,
-  },
-  stateChipName: {
-    color: Colors.textMuted,
-    fontSize: 10,
-    maxWidth: 80,
-  },
-});
+function makeStyles(theme: Theme) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    summaryBar: {
+      backgroundColor: theme.surfaceLight,
+      borderRadius: 10,
+      padding: 14,
+      marginBottom: 16,
+    },
+    summaryText: {
+      color: theme.text,
+      fontSize: 15,
+      textAlign: 'center',
+    },
+    summaryHighlight: {
+      fontWeight: '700',
+      fontSize: 18,
+      color: theme.text,
+    },
+    section: {
+      marginBottom: 16,
+    },
+    sectionHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    statusDot: {
+      width: 10,
+      height: 10,
+      borderRadius: 5,
+      marginRight: 8,
+    },
+    sectionTitle: {
+      color: theme.text,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    stateGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      marginHorizontal: -3,
+    },
+    stateChip: {
+      backgroundColor: theme.surface,
+      borderRadius: 6,
+      paddingHorizontal: 8,
+      paddingVertical: 5,
+      borderWidth: 1,
+      borderColor: theme.border,
+      flexDirection: 'row',
+      alignItems: 'center',
+      margin: 3,
+    },
+    stateChipCode: {
+      color: theme.text,
+      fontSize: 12,
+      fontWeight: '700',
+      marginRight: 4,
+    },
+    stateChipName: {
+      color: theme.textMuted,
+      fontSize: 10,
+      maxWidth: 80,
+    },
+  });
+}

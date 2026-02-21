@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { Colors } from '../constants/colors';
+import { useTheme } from '../context/ThemeContext';
+import { Theme } from '../constants/colors';
 import { StateLaw } from '../types';
 import { getReciprocitySummary } from '../data/reciprocity';
 
@@ -9,8 +10,8 @@ interface StateCardProps {
   onPress: () => void;
 }
 
-function PermitBadge({ type }: { type: StateLaw['permitType'] }) {
-  const badgeColor = Colors.permitType[type];
+function PermitBadge({ type, theme }: { type: StateLaw['permitType']; theme: Theme }) {
+  const badgeColor = theme.permitType[type];
   const label =
     type === 'unrestricted'
       ? 'Unrestricted'
@@ -21,110 +22,104 @@ function PermitBadge({ type }: { type: StateLaw['permitType'] }) {
       : 'No-Issue';
 
   return (
-    <View style={[styles.badge, { backgroundColor: badgeColor }]}>
-      <Text style={styles.badgeText}>{label}</Text>
+    <View style={[{ backgroundColor: badgeColor, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 }]}>
+      <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700' }}>{label}</Text>
     </View>
   );
 }
 
 export function StateCard({ law, onPress }: StateCardProps) {
+  const { theme } = useTheme();
   const reciprocity = getReciprocitySummary(law.stateCode);
+  const s = makeStyles(theme);
 
   return (
-    <Pressable style={styles.card} onPress={onPress}>
-      <View style={styles.header}>
+    <Pressable style={s.card} onPress={onPress}>
+      <View style={s.header}>
         <View>
-          <Text style={styles.stateName}>{law.stateName}</Text>
-          <Text style={styles.stateCode}>{law.stateCode}</Text>
+          <Text style={s.stateName}>{law.stateName}</Text>
+          <Text style={s.stateCode}>{law.stateCode}</Text>
         </View>
-        <PermitBadge type={law.permitType} />
+        <PermitBadge type={law.permitType} theme={theme} />
       </View>
-      <Text style={styles.summary} numberOfLines={2}>
+      <Text style={s.summary} numberOfLines={2}>
         {law.summary}
       </Text>
-      <View style={styles.statsRow}>
-        <View style={styles.stat}>
-          <Text style={styles.statValue}>{reciprocity.honoredByCount}</Text>
-          <Text style={styles.statLabel}>States Honor</Text>
+      <View style={s.statsRow}>
+        <View style={s.stat}>
+          <Text style={s.statValue}>{reciprocity.honoredByCount}</Text>
+          <Text style={s.statLabel}>States Honor</Text>
         </View>
-        <View style={styles.stat}>
-          <Text style={styles.statValue}>
+        <View style={s.stat}>
+          <Text style={s.statValue}>
             {law.permitlessCarry ? 'Yes' : 'No'}
           </Text>
-          <Text style={styles.statLabel}>Permitless</Text>
+          <Text style={s.statLabel}>Permitless</Text>
         </View>
-        <View style={styles.stat}>
-          <Text style={styles.statValue}>
+        <View style={s.stat}>
+          <Text style={s.statValue}>
             {law.standYourGround ? 'Yes' : 'No'}
           </Text>
-          <Text style={styles.statLabel}>Stand Ground</Text>
+          <Text style={s.statLabel}>Stand Ground</Text>
         </View>
-        <View style={styles.stat}>
-          <Text style={styles.statValue}>
+        <View style={s.stat}>
+          <Text style={s.statValue}>
             {law.magazineRestriction ?? 'None'}
           </Text>
-          <Text style={styles.statLabel}>Mag Limit</Text>
+          <Text style={s.statLabel}>Mag Limit</Text>
         </View>
       </View>
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 8,
-  },
-  stateName: {
-    color: Colors.text,
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  stateCode: {
-    color: Colors.textSecondary,
-    fontSize: 13,
-  },
-  badge: {
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  badgeText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  summary: {
-    color: Colors.textSecondary,
-    fontSize: 13,
-    lineHeight: 18,
-    marginBottom: 12,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  stat: {
-    alignItems: 'center',
-  },
-  statValue: {
-    color: Colors.text,
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  statLabel: {
-    color: Colors.textMuted,
-    fontSize: 10,
-    marginTop: 2,
-  },
-});
+function makeStyles(theme: Theme) {
+  return StyleSheet.create({
+    card: {
+      backgroundColor: theme.surface,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 12,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: 8,
+    },
+    stateName: {
+      color: theme.text,
+      fontSize: 18,
+      fontWeight: '700',
+    },
+    stateCode: {
+      color: theme.textSecondary,
+      fontSize: 13,
+    },
+    summary: {
+      color: theme.textSecondary,
+      fontSize: 13,
+      lineHeight: 18,
+      marginBottom: 12,
+    },
+    statsRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    stat: {
+      alignItems: 'center',
+    },
+    statValue: {
+      color: theme.text,
+      fontSize: 15,
+      fontWeight: '700',
+    },
+    statLabel: {
+      color: theme.textMuted,
+      fontSize: 10,
+      marginTop: 2,
+    },
+  });
+}

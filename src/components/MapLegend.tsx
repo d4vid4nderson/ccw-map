@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Colors } from '../constants/colors';
+import { useTheme } from '../context/ThemeContext';
+import { Theme } from '../constants/colors';
 
 interface LegendItem {
   color: string;
@@ -11,68 +12,73 @@ interface MapLegendProps {
   selectedState: string | null;
 }
 
-const defaultLegend: LegendItem[] = [
-  { color: Colors.reciprocity.permitless, label: 'Permitless Carry' },
-  { color: Colors.permitType['shall-issue'], label: 'Shall-Issue' },
-  { color: Colors.permitType['may-issue'], label: 'May-Issue' },
-  { color: Colors.permitType['no-issue'], label: 'Restrictive' },
-];
-
-const reciprocityLegend: LegendItem[] = [
-  { color: Colors.reciprocity.home, label: 'Home State' },
-  { color: Colors.reciprocity.full, label: 'Full Reciprocity' },
-  { color: Colors.reciprocity.permitless, label: 'Permitless (No Permit Needed)' },
-  { color: Colors.reciprocity.none, label: 'No Reciprocity' },
-];
-
 export function MapLegend({ selectedState }: MapLegendProps) {
+  const { theme } = useTheme();
+
+  const defaultLegend: LegendItem[] = [
+    { color: theme.reciprocity.permitless, label: 'Permitless Carry' },
+    { color: theme.permitType['shall-issue'], label: 'Shall-Issue' },
+    { color: theme.permitType['may-issue'], label: 'May-Issue' },
+    { color: theme.permitType['no-issue'], label: 'Restrictive' },
+  ];
+
+  const reciprocityLegend: LegendItem[] = [
+    { color: theme.reciprocity.home, label: 'Home State' },
+    { color: theme.reciprocity.full, label: 'Full Reciprocity' },
+    { color: theme.reciprocity.permitless, label: 'Permitless (No Permit Needed)' },
+    { color: theme.reciprocity.none, label: 'No Reciprocity' },
+  ];
+
   const items = selectedState ? reciprocityLegend : defaultLegend;
+  const s = makeStyles(theme);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>
+    <View style={s.container}>
+      <Text style={s.title}>
         {selectedState ? 'Reciprocity' : 'Permit Type'}
       </Text>
       {items.map((item) => (
-        <View key={item.label} style={styles.row}>
-          <View style={[styles.colorBox, { backgroundColor: item.color }]} />
-          <Text style={styles.label}>{item.label}</Text>
+        <View key={item.label} style={s.row}>
+          <View style={[s.colorBox, { backgroundColor: item.color }]} />
+          <Text style={s.label}>{item.label}</Text>
         </View>
       ))}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    bottom: 24,
-    right: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.92)',
-    borderRadius: 8,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  title: {
-    color: Colors.text,
-    fontSize: 12,
-    fontWeight: '700',
-    marginBottom: 6,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 3,
-  },
-  colorBox: {
-    width: 14,
-    height: 14,
-    borderRadius: 3,
-    marginRight: 6,
-  },
-  label: {
-    color: Colors.textSecondary,
-    fontSize: 11,
-  },
-});
+function makeStyles(theme: Theme) {
+  return StyleSheet.create({
+    container: {
+      position: 'absolute',
+      bottom: 24,
+      right: 12,
+      backgroundColor: theme.overlay,
+      borderRadius: 8,
+      padding: 10,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    title: {
+      color: theme.text,
+      fontSize: 12,
+      fontWeight: '700',
+      marginBottom: 6,
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 3,
+    },
+    colorBox: {
+      width: 14,
+      height: 14,
+      borderRadius: 3,
+      marginRight: 6,
+    },
+    label: {
+      color: theme.textSecondary,
+      fontSize: 11,
+    },
+  });
+}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Linking, Platform } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { Theme } from '../constants/colors';
 import { StateLaw } from '../types';
@@ -137,6 +137,24 @@ export function LawDetail({ law }: LawDetailProps) {
       </View>
 
       <Text style={s.lastUpdated}>Last updated: {law.lastUpdated}</Text>
+
+      {law.sourceUrl && (
+        <Pressable
+          onPress={() => {
+            if (Platform.OS === 'web') {
+              window.open(law.sourceUrl, '_blank');
+            } else {
+              Linking.openURL(law.sourceUrl);
+            }
+          }}
+          style={s.sourceLink}
+        >
+          <Text style={s.sourceLinkText}>
+            Official {law.stateName} Gun Laws →
+          </Text>
+        </Pressable>
+      )}
+
       <Text style={s.disclaimer}>
         This information is for reference only. Laws change frequently. Always
         verify with official state sources before carrying.
@@ -229,6 +247,20 @@ function makeStyles(theme: Theme) {
       fontSize: 11,
       textAlign: 'center',
       marginTop: 8,
+    },
+    sourceLink: {
+      backgroundColor: theme.surface,
+      borderRadius: 8,
+      padding: 12,
+      marginTop: 12,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    sourceLinkText: {
+      color: theme.primary,
+      fontSize: 13,
+      fontWeight: '700',
     },
     disclaimer: {
       color: theme.textMuted,

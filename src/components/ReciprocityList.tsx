@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
   stateGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 6,
+    marginHorizontal: -3,
   },
   stateChip: {
     backgroundColor: Colors.surface,
@@ -139,12 +139,13 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    margin: 3,
   },
   stateChipCode: {
     color: Colors.text,
     fontSize: 12,
     fontWeight: '700',
+    marginRight: 4,
   },
   stateChipName: {
     color: Colors.textMuted,

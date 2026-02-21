@@ -135,7 +135,7 @@ export function NavMenu({ onClose, onShowMap, onShowStates }: NavMenuProps) {
             </View>
 
             {statePickerOpen && (
-              <View style={s.pickerList}>
+              <ScrollView style={s.pickerList} nestedScrollEnabled>
                 {/* None option */}
                 <Pressable
                   style={[
@@ -179,7 +179,7 @@ export function NavMenu({ onClose, onShowMap, onShowStates }: NavMenuProps) {
                     <Text style={s.pickerItemCode}>{state.stateCode}</Text>
                   </Pressable>
                 ))}
-              </View>
+              </ScrollView>
             )}
           </View>
 

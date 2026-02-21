@@ -1,6 +1,7 @@
 // Mapbox configuration
-// Replace with your actual Mapbox public access token
-export const MAPBOX_ACCESS_TOKEN = 'YOUR_MAPBOX_PUBLIC_TOKEN';
+// Set EXPO_PUBLIC_MAPBOX_TOKEN in your environment or .env file
+export const MAPBOX_ACCESS_TOKEN =
+  process.env.EXPO_PUBLIC_MAPBOX_TOKEN || '';
 
 // US center coordinates
 export const US_CENTER: [number, number] = [-98.5795, 39.8283];

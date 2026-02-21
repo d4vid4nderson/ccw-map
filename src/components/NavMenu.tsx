@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
-import { Theme } from '../constants/colors';
+import { Theme, themeList } from '../constants/colors';
 import { getAllStates } from '../data/stateLaws';
 import { codeToStateName } from '../hooks/useMapbox';
 
@@ -190,53 +190,32 @@ export function NavMenu({ onClose, onShowMap, onShowStates }: NavMenuProps) {
             <Text style={s.settingsGroupTitle}>Theme</Text>
 
             <View style={s.themeGrid}>
-              <Pressable
-                style={[
-                  s.themeCard,
-                  themeName === 'light' && s.themeCardActive,
-                ]}
-                onPress={() => setTheme('light')}
-              >
-                <View style={s.themePreviewLight}>
-                  <View style={s.previewBarLight} />
-                  <View style={s.previewDotsRow}>
-                    <View style={[s.previewDot, { backgroundColor: '#d0d0d0' }]} />
-                    <View style={[s.previewDot, { backgroundColor: '#d0d0d0' }]} />
-                  </View>
-                </View>
-                <Text
+              {themeList.map((t) => (
+                <Pressable
+                  key={t.name}
                   style={[
-                    s.themeCardLabel,
-                    themeName === 'light' && s.themeCardLabelActive,
+                    s.themeCard,
+                    themeName === t.name && s.themeCardActive,
                   ]}
+                  onPress={() => setTheme(t.name)}
                 >
-                  Light
-                </Text>
-              </Pressable>
-
-              <Pressable
-                style={[
-                  s.themeCard,
-                  themeName === 'dark' && s.themeCardActive,
-                ]}
-                onPress={() => setTheme('dark')}
-              >
-                <View style={s.themePreviewDark}>
-                  <View style={s.previewBarDark} />
-                  <View style={s.previewDotsRow}>
-                    <View style={[s.previewDot, { backgroundColor: '#555' }]} />
-                    <View style={[s.previewDot, { backgroundColor: '#555' }]} />
+                  <View style={[s.themePreview, { backgroundColor: t.previewBg }]}>
+                    <View style={[s.previewBar, { backgroundColor: t.previewBar }]} />
+                    <View style={s.previewDotsRow}>
+                      <View style={[s.previewDot, { backgroundColor: t.previewDots[0] }]} />
+                      <View style={[s.previewDot, { backgroundColor: t.previewDots[1] }]} />
+                    </View>
                   </View>
-                </View>
-                <Text
-                  style={[
-                    s.themeCardLabel,
-                    themeName === 'dark' && s.themeCardLabelActive,
-                  ]}
-                >
-                  Dark
-                </Text>
-              </Pressable>
+                  <Text
+                    style={[
+                      s.themeCardLabel,
+                      themeName === t.name && s.themeCardLabelActive,
+                    ]}
+                  >
+                    {t.label}
+                  </Text>
+                </Pressable>
+              ))}
             </View>
           </View>
         </ScrollView>
@@ -482,62 +461,47 @@ function makeStyles(theme: Theme) {
     // Theme picker cards
     themeGrid: {
       flexDirection: 'row',
-      gap: 12,
+      flexWrap: 'wrap',
+      gap: 8,
     },
     themeCard: {
-      flex: 1,
-      borderRadius: 12,
+      width: '47%',
+      borderRadius: 10,
       borderWidth: 2,
       borderColor: theme.border,
-      padding: 4,
+      padding: 3,
       alignItems: 'center',
     },
     themeCardActive: {
       borderColor: theme.accent,
     },
-    themePreviewLight: {
+    themePreview: {
       width: '100%',
-      height: 64,
-      backgroundColor: '#f2f2f2',
-      borderRadius: 8,
-      padding: 10,
+      height: 48,
+      borderRadius: 7,
+      padding: 8,
       justifyContent: 'space-between',
     },
-    previewBarLight: {
-      width: '60%',
-      height: 6,
+    previewBar: {
+      width: '55%',
+      height: 5,
       borderRadius: 3,
-      backgroundColor: '#ddd',
-    },
-    themePreviewDark: {
-      width: '100%',
-      height: 64,
-      backgroundColor: '#1a1a1a',
-      borderRadius: 8,
-      padding: 10,
-      justifyContent: 'space-between',
-    },
-    previewBarDark: {
-      width: '60%',
-      height: 6,
-      borderRadius: 3,
-      backgroundColor: '#3a3a3a',
     },
     previewDotsRow: {
       flexDirection: 'row',
-      gap: 4,
+      gap: 3,
     },
     previewDot: {
-      width: 8,
-      height: 8,
+      width: 7,
+      height: 7,
       borderRadius: 4,
     },
     themeCardLabel: {
       color: theme.textMuted,
-      fontSize: 13,
+      fontSize: 11,
       fontWeight: '600',
-      marginTop: 8,
-      marginBottom: 6,
+      marginTop: 5,
+      marginBottom: 4,
     },
     themeCardLabelActive: {
       color: theme.text,

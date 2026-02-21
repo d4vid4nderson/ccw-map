@@ -16,6 +16,7 @@ import { MapLegend } from '../src/components/MapLegend';
 import { StateCard } from '../src/components/StateCard';
 import { WebMap } from '../src/components/WebMap';
 import { NavMenu } from '../src/components/NavMenu';
+import { StateComparison } from '../src/components/StateComparison';
 
 export default function MapScreen() {
   const router = useRouter();
@@ -27,44 +28,91 @@ export default function MapScreen() {
   const [panelOpen, setPanelOpen] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // Compare mode
+  const [compareMode, setCompareMode] = useState(false);
+  const [compareStateA, setCompareStateA] = useState<string | null>(null);
+  const [compareStateB, setCompareStateB] = useState<string | null>(null);
+
+  const exitCompareMode = useCallback(() => {
+    setCompareMode(false);
+    setCompareStateA(null);
+    setCompareStateB(null);
+  }, []);
+
   const handleStatePress = useCallback(
-    (stateCode: string) => {
+    (stateCode: string, shiftKey: boolean = false) => {
+      // Shift-click: enter compare mode
+      if (shiftKey && selectedState && selectedState !== stateCode) {
+        setCompareStateA(selectedState);
+        setCompareStateB(stateCode);
+        setCompareMode(true);
+        setPanelOpen(true);
+        return;
+      }
+
+      // In compare-waiting mode (mobile): pick second state
+      if (compareMode && compareStateA && !compareStateB && stateCode !== compareStateA) {
+        setCompareStateB(stateCode);
+        setPanelOpen(true);
+        return;
+      }
+
+      // Normal behavior
       if (selectedState === stateCode) {
         router.push(`/state/${stateCode}`);
       } else {
+        exitCompareMode();
         selectState(stateCode);
         setPanelOpen(true);
       }
     },
-    [selectedState, selectState, router]
+    [selectedState, selectState, router, compareMode, compareStateA, compareStateB, exitCompareMode]
   );
 
   const handleClearSelection = useCallback(() => {
+    exitCompareMode();
     selectState(null);
-  }, [selectState]);
+  }, [selectState, exitCompareMode]);
+
+  // Mobile compare: user taps "Compare" button, enters waiting-for-second-state mode
+  const handleStartCompare = useCallback(() => {
+    if (selectedState) {
+      setCompareStateA(selectedState);
+      setCompareStateB(null);
+      setCompareMode(true);
+    }
+  }, [selectedState]);
 
   const handleShowMap = useCallback(() => {
     setMenuOpen(false);
     setPanelOpen(true);
     setShowList(false);
+    exitCompareMode();
     if (homeState) {
       selectState(homeState);
     }
-  }, [homeState, selectState]);
+  }, [homeState, selectState, exitCompareMode]);
 
   const handleShowStates = useCallback(() => {
     setMenuOpen(false);
     setPanelOpen(true);
     setShowList(true);
-  }, []);
+    exitCompareMode();
+  }, [exitCompareMode]);
 
   const allStates = getAllStates().sort((a, b) =>
     a.stateName.localeCompare(b.stateName)
   );
 
-  const panelWidth = isWide ? 360 : width * 0.85;
-  const panelMaxHeight = isWide ? height - 100 : height * 0.6;
+  const panelWidth = isWide ? 380 : width * 0.88;
+  const panelMaxHeight = isWide ? height - 100 : height * 0.65;
   const menuWidth = isWide ? 300 : width * 0.8;
+
+  const isComparing =
+    compareMode && compareStateA && compareStateB &&
+    stateLaws[compareStateA] && stateLaws[compareStateB];
+
+  const isWaitingForCompare = compareMode && compareStateA && !compareStateB;
 
   const s = makeStyles(theme);
 
@@ -99,24 +147,36 @@ export default function MapScreen() {
             >
               <Text style={s.panelMenuIcon}>☰</Text>
             </Pressable>
-            <View style={s.tabRow}>
-              <Pressable
-                style={[s.tabButton, !showList && s.tabButtonActive]}
-                onPress={() => setShowList(false)}
-              >
-                <Text style={[s.tabText, !showList && s.tabTextActive]}>
-                  Overview
-                </Text>
-              </Pressable>
-              <Pressable
-                style={[s.tabButton, showList && s.tabButtonActive]}
-                onPress={() => setShowList(true)}
-              >
-                <Text style={[s.tabText, showList && s.tabTextActive]}>
-                  All States
-                </Text>
-              </Pressable>
-            </View>
+
+            {!isComparing ? (
+              <View style={s.tabRow}>
+                <Pressable
+                  style={[s.tabButton, !showList && s.tabButtonActive]}
+                  onPress={() => { setShowList(false); exitCompareMode(); }}
+                >
+                  <Text style={[s.tabText, !showList && s.tabTextActive]}>
+                    Overview
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={[s.tabButton, showList && s.tabButtonActive]}
+                  onPress={() => { setShowList(true); exitCompareMode(); }}
+                >
+                  <Text style={[s.tabText, showList && s.tabTextActive]}>
+                    All States
+                  </Text>
+                </Pressable>
+              </View>
+            ) : (
+              <View style={s.tabRow}>
+                <View style={[s.tabButton, s.tabButtonActive]}>
+                  <Text style={[s.tabText, s.tabTextActive]}>
+                    Comparing
+                  </Text>
+                </View>
+              </View>
+            )}
+
             <Pressable
               onPress={() => setPanelOpen(false)}
               style={s.closePanelButton}
@@ -125,13 +185,30 @@ export default function MapScreen() {
             </Pressable>
           </View>
 
-          {/* Selection bar */}
-          {selectedState && (
+          {/* Waiting for compare state hint */}
+          {isWaitingForCompare && (
+            <View style={s.compareHintBar}>
+              <Text style={s.compareHintText}>
+                Tap another state to compare with {codeToStateName[compareStateA!]}
+              </Text>
+              <Pressable onPress={exitCompareMode} style={s.clearButton}>
+                <Text style={s.clearText}>Cancel</Text>
+              </Pressable>
+            </View>
+          )}
+
+          {/* Selection bar (normal mode) */}
+          {!isComparing && !isWaitingForCompare && selectedState && (
             <View style={s.selectionBar}>
               <Text style={s.selectionText}>
-                {codeToStateName[selectedState]} selected — tap again for
-                details
+                {codeToStateName[selectedState]} selected
               </Text>
+              <Pressable
+                onPress={handleStartCompare}
+                style={s.compareButton}
+              >
+                <Text style={s.compareButtonText}>Compare</Text>
+              </Pressable>
               <Pressable
                 onPress={handleClearSelection}
                 style={s.clearButton}
@@ -141,73 +218,82 @@ export default function MapScreen() {
             </View>
           )}
 
-          {/* Panel content */}
-          <ScrollView
-            style={s.scrollArea}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={s.scrollContent}
-          >
-            {!showList ? (
-              <View>
-                <View style={s.statsGrid}>
-                  <View style={s.statBox}>
-                    <Text style={s.statBoxValue}>
-                      {allStates.filter((st) => st.permitlessCarry).length}
-                    </Text>
-                    <Text style={s.statBoxLabel}>Permitless Carry</Text>
+          {/* Compare view */}
+          {isComparing ? (
+            <StateComparison
+              stateA={stateLaws[compareStateA!]}
+              stateB={stateLaws[compareStateB!]}
+              onClose={exitCompareMode}
+            />
+          ) : (
+            /* Normal panel content */
+            <ScrollView
+              style={s.scrollArea}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={s.scrollContent}
+            >
+              {!showList ? (
+                <View>
+                  <View style={s.statsGrid}>
+                    <View style={s.statBox}>
+                      <Text style={s.statBoxValue}>
+                        {allStates.filter((st) => st.permitlessCarry).length}
+                      </Text>
+                      <Text style={s.statBoxLabel}>Permitless Carry</Text>
+                    </View>
+                    <View style={s.statBox}>
+                      <Text style={s.statBoxValue}>
+                        {
+                          allStates.filter(
+                            (st) => st.permitType === 'shall-issue'
+                          ).length
+                        }
+                      </Text>
+                      <Text style={s.statBoxLabel}>Shall-Issue</Text>
+                    </View>
+                    <View style={s.statBox}>
+                      <Text style={s.statBoxValue}>
+                        {
+                          allStates.filter(
+                            (st) => st.permitType === 'may-issue'
+                          ).length
+                        }
+                      </Text>
+                      <Text style={s.statBoxLabel}>May-Issue</Text>
+                    </View>
+                    <View style={s.statBox}>
+                      <Text style={s.statBoxValue}>
+                        {allStates.filter((st) => st.redFlagLaw).length}
+                      </Text>
+                      <Text style={s.statBoxLabel}>Red Flag Laws</Text>
+                    </View>
                   </View>
-                  <View style={s.statBox}>
-                    <Text style={s.statBoxValue}>
-                      {
-                        allStates.filter(
-                          (st) => st.permitType === 'shall-issue'
-                        ).length
-                      }
-                    </Text>
-                    <Text style={s.statBoxLabel}>Shall-Issue</Text>
-                  </View>
-                  <View style={s.statBox}>
-                    <Text style={s.statBoxValue}>
-                      {
-                        allStates.filter(
-                          (st) => st.permitType === 'may-issue'
-                        ).length
-                      }
-                    </Text>
-                    <Text style={s.statBoxLabel}>May-Issue</Text>
-                  </View>
-                  <View style={s.statBox}>
-                    <Text style={s.statBoxValue}>
-                      {allStates.filter((st) => st.redFlagLaw).length}
-                    </Text>
-                    <Text style={s.statBoxLabel}>Red Flag Laws</Text>
-                  </View>
+
+                  <Text style={s.instructionText}>
+                    Tap a state to see reciprocity. Shift-click a second state
+                    to compare laws, or tap Compare after selecting one.
+                  </Text>
+
+                  {selectedState && stateLaws[selectedState] && (
+                    <View style={{ marginTop: 12 }}>
+                      <StateCard
+                        law={stateLaws[selectedState]}
+                        onPress={() => router.push(`/state/${selectedState}`)}
+                      />
+                    </View>
+                  )}
                 </View>
-
-                <Text style={s.instructionText}>
-                  Tap a state on the map to see reciprocity. Tap again to view
-                  full details and laws.
-                </Text>
-
-                {selectedState && stateLaws[selectedState] && (
-                  <View style={{ marginTop: 12 }}>
-                    <StateCard
-                      law={stateLaws[selectedState]}
-                      onPress={() => router.push(`/state/${selectedState}`)}
-                    />
-                  </View>
-                )}
-              </View>
-            ) : (
-              allStates.map((law) => (
-                <StateCard
-                  key={law.stateCode}
-                  law={law}
-                  onPress={() => router.push(`/state/${law.stateCode}`)}
-                />
-              ))
-            )}
-          </ScrollView>
+              ) : (
+                allStates.map((law) => (
+                  <StateCard
+                    key={law.stateCode}
+                    law={law}
+                    onPress={() => router.push(`/state/${law.stateCode}`)}
+                  />
+                ))
+              )}
+            </ScrollView>
+          )}
         </View>
       )}
 
@@ -348,6 +434,18 @@ function makeStyles(theme: Theme) {
       fontWeight: '600',
       flex: 1,
     },
+    compareButton: {
+      backgroundColor: theme.accent,
+      borderRadius: 6,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      marginLeft: 8,
+    },
+    compareButtonText: {
+      color: '#fff',
+      fontSize: 11,
+      fontWeight: '700',
+    },
     clearButton: {
       backgroundColor: theme.name === 'dark'
         ? 'rgba(255,255,255,0.1)'
@@ -361,6 +459,24 @@ function makeStyles(theme: Theme) {
       color: theme.textSecondary,
       fontSize: 11,
       fontWeight: '600',
+    },
+
+    compareHintBar: {
+      backgroundColor: theme.name === 'dark'
+        ? 'rgba(233, 69, 96, 0.15)'
+        : 'rgba(233, 69, 96, 0.08)',
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    compareHintText: {
+      color: theme.text,
+      fontSize: 12,
+      fontWeight: '600',
+      flex: 1,
     },
 
     scrollArea: {

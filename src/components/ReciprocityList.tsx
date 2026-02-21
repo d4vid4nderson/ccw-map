@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   summaryBar: {
-    backgroundColor: Colors.primaryDark,
+    backgroundColor: Colors.surfaceLight,
     borderRadius: 10,
     padding: 14,
     marginBottom: 16,
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
   summaryHighlight: {
     fontWeight: '700',
     fontSize: 18,
-    color: '#fff',
+    color: '#1a1a1a',
   },
   section: {
     marginBottom: 16,

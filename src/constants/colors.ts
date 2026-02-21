@@ -1,17 +1,17 @@
 export const Colors = {
-  background: '#0f0f1a',
-  surface: '#1a1a2e',
-  surfaceLight: '#252545',
-  primary: '#4a90d9',
-  primaryDark: '#2d6cb5',
+  background: '#f2f2f2',
+  surface: '#ffffff',
+  surfaceLight: '#e8e8e8',
+  primary: '#444444',
+  primaryDark: '#333333',
   accent: '#e94560',
   success: '#4caf50',
   warning: '#ff9800',
   error: '#f44336',
-  text: '#e0e0e0',
-  textSecondary: '#9e9e9e',
-  textMuted: '#666680',
-  border: '#333355',
+  text: '#1a1a1a',
+  textSecondary: '#555555',
+  textMuted: '#888888',
+  border: '#d0d0d0',
   // Reciprocity map colors
   reciprocity: {
     full: '#4caf50',        // Green - full reciprocity
@@ -20,7 +20,7 @@ export const Colors = {
     home: '#4a90d9',        // Blue - home state
     permitless: '#8bc34a',  // Light green - permitless carry
     unrestricted: '#2e7d32', // Dark green - unrestricted
-    default: '#333355',     // Gray - unselected
+    default: '#d0d0d0',     // Gray - unselected
   },
   permitType: {
     unrestricted: '#2e7d32',

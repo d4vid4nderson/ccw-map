@@ -83,13 +83,21 @@ export function WebMap({ selectedState, onStatePress, getStateColor }: WebMapPro
           }
           colorExpression.push(Colors.reciprocity.default);
 
+          // Hide country labels (e.g. "United States") so they don't cover states
+          const styleLayers = mapInstance.getStyle().layers || [];
+          for (const layer of styleLayers) {
+            if (layer.id.includes('country-label') || layer.id.includes('continent-label')) {
+              mapInstance.setLayoutProperty(layer.id, 'visibility', 'none');
+            }
+          }
+
           mapInstance.addLayer({
             id: 'state-fills',
             type: 'fill',
             source: 'states',
             paint: {
               'fill-color': colorExpression as any,
-              'fill-opacity': 0.7,
+              'fill-opacity': 0.5,
             },
           });
 

@@ -20,7 +20,7 @@ import { NavMenu } from '../src/components/NavMenu';
 export default function MapScreen() {
   const router = useRouter();
   const { width, height } = useWindowDimensions();
-  const { theme } = useTheme();
+  const { theme, homeState } = useTheme();
   const isWide = width > 768;
   const { selectedState, selectState, getStateColor } = useReciprocityMap();
   const [showList, setShowList] = useState(false);
@@ -42,6 +42,21 @@ export default function MapScreen() {
   const handleClearSelection = useCallback(() => {
     selectState(null);
   }, [selectState]);
+
+  const handleShowMap = useCallback(() => {
+    setMenuOpen(false);
+    setPanelOpen(true);
+    setShowList(false);
+    if (homeState) {
+      selectState(homeState);
+    }
+  }, [homeState, selectState]);
+
+  const handleShowStates = useCallback(() => {
+    setMenuOpen(false);
+    setPanelOpen(true);
+    setShowList(true);
+  }, []);
 
   const allStates = getAllStates().sort((a, b) =>
     a.stateName.localeCompare(b.stateName)
@@ -213,10 +228,8 @@ export default function MapScreen() {
           <View style={[s.menuContainer, { width: menuWidth }]}>
             <NavMenu
               onClose={() => setMenuOpen(false)}
-              onShowPanel={() => {
-                setPanelOpen(true);
-                setMenuOpen(false);
-              }}
+              onShowMap={handleShowMap}
+              onShowStates={handleShowStates}
             />
           </View>
         </>

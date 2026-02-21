@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,6 @@ import {
   ScrollView,
   useWindowDimensions,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useTheme } from '../src/context/ThemeContext';
 import { Theme } from '../src/constants/colors';
 import { useReciprocityMap, codeToStateName } from '../src/hooks/useMapbox';
@@ -17,6 +16,8 @@ import { StateCard } from '../src/components/StateCard';
 import { WebMap } from '../src/components/WebMap';
 import { NavMenu } from '../src/components/NavMenu';
 import { StateComparison } from '../src/components/StateComparison';
+import { LawDetail } from '../src/components/LawDetail';
+import { ReciprocityList } from '../src/components/ReciprocityList';
 
 export type KpiFilter = 'permitless' | 'shall-issue' | 'may-issue' | 'red-flag' | null;
 
@@ -40,7 +41,6 @@ function stateMatchesKpi(stateCode: string, filter: KpiFilter): boolean {
 }
 
 export default function MapScreen() {
-  const router = useRouter();
   const { width, height } = useWindowDimensions();
   const { theme, homeState } = useTheme();
   const isWide = width > 768;
@@ -56,6 +56,10 @@ export default function MapScreen() {
 
   // KPI filter mode
   const [kpiFilter, setKpiFilter] = useState<KpiFilter>(null);
+
+  // State detail panel (triggered by "More" in popup)
+  const [detailState, setDetailState] = useState<string | null>(null);
+  const [detailTab, setDetailTab] = useState<'laws' | 'reciprocity'>('laws');
 
   const exitCompareMode = useCallback(() => {
     setCompareMode(false);
@@ -100,6 +104,7 @@ export default function MapScreen() {
     (stateCode: string, shiftKey: boolean = false) => {
       // Shift-click: enter compare mode
       if (shiftKey && selectedState && selectedState !== stateCode) {
+        setDetailState(null);
         setCompareStateA(selectedState);
         setCompareStateB(stateCode);
         setCompareMode(true);
@@ -114,21 +119,39 @@ export default function MapScreen() {
         return;
       }
 
-      // Normal behavior
-      if (selectedState === stateCode) {
-        router.push(`/state/${stateCode}`);
-      } else {
-        exitCompareMode();
-        setKpiFilter(null);
-        selectState(stateCode);
-        setPanelOpen(true);
-      }
+      // Normal click: select state (popup will show via WebMap)
+      exitCompareMode();
+      setKpiFilter(null);
+      setDetailState(null);
+      selectState(stateCode);
     },
-    [selectedState, selectState, router, compareMode, compareStateA, compareStateB, exitCompareMode]
+    [selectedState, selectState, compareMode, compareStateA, exitCompareMode]
   );
+
+  // "More" button in popup: open the left panel with full state detail
+  const handleMore = useCallback((stateCode: string) => {
+    exitCompareMode();
+    setKpiFilter(null);
+    selectState(stateCode);
+    setDetailState(stateCode);
+    setDetailTab('laws');
+    setPanelOpen(true);
+  }, [selectState, exitCompareMode]);
+
+  // "Compare" button in popup: enter compare mode
+  const handlePopupCompare = useCallback((stateCode: string) => {
+    setDetailState(null);
+    setKpiFilter(null);
+    selectState(stateCode);
+    setCompareStateA(stateCode);
+    setCompareStateB(null);
+    setCompareMode(true);
+    setPanelOpen(true);
+  }, [selectState]);
 
   const handleClearSelection = useCallback(() => {
     exitCompareMode();
+    setDetailState(null);
     selectState(null);
   }, [selectState, exitCompareMode]);
 
@@ -147,6 +170,7 @@ export default function MapScreen() {
     setPanelOpen(true);
     setShowList(false);
     setKpiFilter(null);
+    setDetailState(null);
     exitCompareMode();
     if (homeState) {
       selectState(homeState);
@@ -158,6 +182,7 @@ export default function MapScreen() {
     setPanelOpen(true);
     setShowList(true);
     setKpiFilter(null);
+    setDetailState(null);
     exitCompareMode();
   }, [exitCompareMode]);
 
@@ -175,6 +200,8 @@ export default function MapScreen() {
 
   const isWaitingForCompare = compareMode && compareStateA && !compareStateB;
 
+  const isDetailView = detailState && stateLaws[detailState] && !isComparing;
+
   const s = makeStyles(theme);
 
   return (
@@ -184,6 +211,8 @@ export default function MapScreen() {
         <WebMap
           selectedState={selectedState}
           onStatePress={handleStatePress}
+          onMore={handleMore}
+          onCompare={handlePopupCompare}
           getStateColor={getMapStateColor}
         />
         <MapLegend
@@ -208,14 +237,42 @@ export default function MapScreen() {
         >
           {/* Panel header */}
           <View style={s.panelHeader}>
-            <Pressable
-              onPress={() => setMenuOpen(true)}
-              style={s.panelMenuButton}
-            >
-              <Text style={s.panelMenuIcon}>☰</Text>
-            </Pressable>
+            {isDetailView ? (
+              <Pressable
+                onPress={() => setDetailState(null)}
+                style={s.panelMenuButton}
+              >
+                <Text style={s.panelMenuIcon}>←</Text>
+              </Pressable>
+            ) : (
+              <Pressable
+                onPress={() => setMenuOpen(true)}
+                style={s.panelMenuButton}
+              >
+                <Text style={s.panelMenuIcon}>☰</Text>
+              </Pressable>
+            )}
 
-            {!isComparing ? (
+            {isDetailView ? (
+              <View style={s.tabRow}>
+                <Pressable
+                  style={[s.tabButton, detailTab === 'laws' && s.tabButtonActive]}
+                  onPress={() => setDetailTab('laws')}
+                >
+                  <Text style={[s.tabText, detailTab === 'laws' && s.tabTextActive]}>
+                    Laws & Details
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={[s.tabButton, detailTab === 'reciprocity' && s.tabButtonActive]}
+                  onPress={() => setDetailTab('reciprocity')}
+                >
+                  <Text style={[s.tabText, detailTab === 'reciprocity' && s.tabTextActive]}>
+                    Reciprocity
+                  </Text>
+                </Pressable>
+              </View>
+            ) : !isComparing ? (
               <View style={s.tabRow}>
                 <Pressable
                   style={[s.tabButton, !showList && s.tabButtonActive]}
@@ -245,7 +302,7 @@ export default function MapScreen() {
             )}
 
             <Pressable
-              onPress={() => setPanelOpen(false)}
+              onPress={() => { setPanelOpen(false); setDetailState(null); }}
               style={s.closePanelButton}
             >
               <Text style={s.closePanelText}>✕</Text>
@@ -264,8 +321,8 @@ export default function MapScreen() {
             </View>
           )}
 
-          {/* Selection bar (normal mode) */}
-          {!isComparing && !isWaitingForCompare && selectedState && (
+          {/* Selection bar (normal mode, not detail view) */}
+          {!isComparing && !isWaitingForCompare && !isDetailView && selectedState && (
             <View style={s.selectionBar}>
               <Text style={s.selectionText}>
                 {codeToStateName[selectedState]} selected
@@ -285,8 +342,36 @@ export default function MapScreen() {
             </View>
           )}
 
-          {/* Compare view */}
-          {isComparing ? (
+          {/* Detail view: full state info in panel */}
+          {isDetailView ? (
+            <View style={s.detailContainer}>
+              {/* State detail header */}
+              <View style={s.detailHeader}>
+                <View style={s.detailHeaderTop}>
+                  <View>
+                    <Text style={s.detailStateName}>{stateLaws[detailState!].stateName}</Text>
+                    <Text style={s.detailStateCode}>{stateLaws[detailState!].stateCode}</Text>
+                  </View>
+                  <View style={[s.detailPermitBadge, { backgroundColor: theme.permitType[stateLaws[detailState!].permitType] }]}>
+                    <Text style={s.detailPermitText}>
+                      {stateLaws[detailState!].permitType.replace('-', ' ')}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+              <ScrollView
+                style={s.scrollArea}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={s.scrollContent}
+              >
+                {detailTab === 'laws' ? (
+                  <LawDetail law={stateLaws[detailState!]} />
+                ) : (
+                  <ReciprocityList stateCode={detailState!} />
+                )}
+              </ScrollView>
+            </View>
+          ) : isComparing ? (
             <StateComparison
               stateA={stateLaws[compareStateA!]}
               stateB={stateLaws[compareStateB!]}
@@ -349,25 +434,16 @@ export default function MapScreen() {
                   </View>
 
                   <Text style={s.instructionText}>
-                    Tap a state to see reciprocity. Shift-click a second state
-                    to compare laws, or tap Compare after selecting one.
+                    Tap a state to see its laws. Shift-click a second state
+                    to compare, or tap Compare in the popup.
                   </Text>
-
-                  {selectedState && stateLaws[selectedState] && (
-                    <View style={{ marginTop: 12 }}>
-                      <StateCard
-                        law={stateLaws[selectedState]}
-                        onPress={() => router.push(`/state/${selectedState}`)}
-                      />
-                    </View>
-                  )}
                 </View>
               ) : (
                 allStates.map((law) => (
                   <StateCard
                     key={law.stateCode}
                     law={law}
-                    onPress={() => router.push(`/state/${law.stateCode}`)}
+                    onPress={() => handleMore(law.stateCode)}
                   />
                 ))
               )}
@@ -612,6 +688,43 @@ function makeStyles(theme: Theme) {
       fontSize: 12,
       textAlign: 'center',
       lineHeight: 18,
+    },
+
+    // Detail view in panel
+    detailContainer: {
+      flex: 1,
+    },
+    detailHeader: {
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+    },
+    detailHeaderTop: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+    },
+    detailStateName: {
+      color: theme.text,
+      fontSize: 18,
+      fontWeight: '800',
+    },
+    detailStateCode: {
+      color: theme.textSecondary,
+      fontSize: 12,
+      marginTop: 1,
+    },
+    detailPermitBadge: {
+      borderRadius: 6,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+    },
+    detailPermitText: {
+      color: '#fff',
+      fontSize: 11,
+      fontWeight: '700',
+      textTransform: 'capitalize',
     },
 
     // Single floating menu button (when panel is closed)

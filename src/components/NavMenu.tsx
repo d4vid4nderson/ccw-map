@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Switch, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { Theme } from '../constants/colors';
 import { getAllStates } from '../data/stateLaws';
@@ -12,7 +12,7 @@ interface NavMenuProps {
 }
 
 export function NavMenu({ onClose, onShowMap, onShowStates }: NavMenuProps) {
-  const { theme, themeName, setTheme, toggleTheme, homeState, setHomeState } = useTheme();
+  const { theme, themeName, setTheme, homeState, setHomeState } = useTheme();
   const [activeSection, setActiveSection] = useState<'nav' | 'settings'>('nav');
   const [statePickerOpen, setStatePickerOpen] = useState(false);
   const s = makeStyles(theme);
@@ -185,29 +185,9 @@ export function NavMenu({ onClose, onShowMap, onShowStates }: NavMenuProps) {
 
           <View style={s.dividerFull} />
 
-          {/* Appearance section */}
+          {/* Theme section */}
           <View style={s.settingsGroup}>
-            <Text style={s.settingsGroupTitle}>Appearance</Text>
-
-            {/* Dark mode toggle */}
-            <View style={s.settingRow}>
-              <View style={s.settingInfo}>
-                <Text style={s.settingLabel}>Dark Mode</Text>
-                <Text style={s.settingDesc}>Switch to dark interface</Text>
-              </View>
-              <Switch
-                value={themeName === 'dark'}
-                onValueChange={toggleTheme}
-                trackColor={{
-                  false: theme.name === 'dark' ? '#555' : '#ccc',
-                  true: theme.accent,
-                }}
-                thumbColor={'#fff'}
-              />
-            </View>
-
-            {/* Theme picker */}
-            <Text style={s.settingSubhead}>Theme</Text>
+            <Text style={s.settingsGroupTitle}>Theme</Text>
 
             <View style={s.themeGrid}>
               <Pressable
@@ -422,14 +402,6 @@ function makeStyles(theme: Theme) {
       letterSpacing: 0.8,
       marginBottom: 16,
     },
-    settingRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingVertical: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.border,
-    },
     settingRowColumn: {
       paddingVertical: 4,
     },
@@ -446,16 +418,6 @@ function makeStyles(theme: Theme) {
       fontSize: 12,
       marginTop: 2,
     },
-    settingSubhead: {
-      color: theme.textMuted,
-      fontSize: 12,
-      fontWeight: '700',
-      textTransform: 'uppercase',
-      letterSpacing: 0.8,
-      marginTop: 24,
-      marginBottom: 12,
-    },
-
     // Dropdown
     dropdown: {
       flexDirection: 'row',

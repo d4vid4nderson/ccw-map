@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
   container: {
     position: 'absolute',
     bottom: 24,
-    left: 12,
+    right: 12,
     backgroundColor: 'rgba(255, 255, 255, 0.92)',
     borderRadius: 8,
     padding: 10,

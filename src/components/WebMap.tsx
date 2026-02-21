@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useCallback, useState } from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { View, Text, StyleSheet, Platform, Pressable } from 'react-native';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { MAPBOX_ACCESS_TOKEN, US_CENTER, US_ZOOM, US_STATES_GEOJSON_URL } from '../constants/mapbox';
@@ -173,6 +173,16 @@ export function WebMap({ selectedState, onStatePress, getStateColor }: WebMapPro
     updateColors();
   }, [selectedState, updateColors]);
 
+  const handleRecenter = useCallback(() => {
+    if (map.current) {
+      map.current.flyTo({
+        center: US_CENTER,
+        zoom: US_ZOOM,
+        duration: 800,
+      });
+    }
+  }, []);
+
   const s = makeStyles(theme);
 
   if (Platform.OS !== 'web') {
@@ -190,6 +200,9 @@ export function WebMap({ selectedState, onStatePress, getStateColor }: WebMapPro
   return (
     <View style={s.container}>
       <div ref={mapContainer as any} style={{ width: '100%', height: '100%' }} />
+      <Pressable style={s.recenterButton} onPress={handleRecenter}>
+        <Text style={s.recenterIcon}>⌖</Text>
+      </Pressable>
     </View>
   );
 }
@@ -209,6 +222,29 @@ function makeStyles(theme: Theme) {
       color: theme.warning,
       fontSize: 14,
       textAlign: 'center',
+    },
+    recenterButton: {
+      position: 'absolute',
+      bottom: 24,
+      left: 12,
+      backgroundColor: theme.overlay,
+      borderRadius: 8,
+      width: 36,
+      height: 36,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: theme.border,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.15,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    recenterIcon: {
+      color: theme.text,
+      fontSize: 20,
+      lineHeight: 22,
     },
   });
 }

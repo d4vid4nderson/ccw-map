@@ -23,6 +23,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: null,
     ammoRestrictions: null,
+    sourceUrl: 'https://www.alea.gov/dps/driver-license/pistol-permit',
     summary: 'Alabama is a permitless carry state. Any legal gun owner 21+ may carry concealed without a permit. Optional permits available for reciprocity.',
     keyProvisions: [
       'Permitless concealed carry effective Jan 1, 2023',
@@ -50,6 +51,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: null,
     ammoRestrictions: null,
+    sourceUrl: 'https://dps.alaska.gov/Statewide/PermitsLicensing/Weapons',
     summary: 'Alaska was the first state after Vermont to adopt permitless carry (2003). Any person 21+ who can legally possess a firearm may carry concealed.',
     keyProvisions: [
       'Permitless carry since 2003',
@@ -77,6 +79,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: null,
     ammoRestrictions: null,
+    sourceUrl: 'https://www.azdps.gov/services/public/cwp',
     summary: 'Arizona is a permitless carry state with broad firearms freedoms. Concealed carry without a permit for 21+. Optional CWP available.',
     keyProvisions: [
       'Permitless carry since 2010',
@@ -104,6 +107,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: null,
     ammoRestrictions: null,
+    sourceUrl: 'https://www.asp.arkansas.gov/services-and-programs/concealed-handgun-licensing/',
     summary: 'Arkansas allows permitless carry for persons 18+ who can legally possess a firearm. Enhanced carry license available for additional privileges.',
     keyProvisions: [
       'Permitless carry for 18+',
@@ -131,6 +135,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: 10,
     transportRequirements: 'Firearms must be unloaded and in a locked container (not the glove box) during transport. Ammunition must be stored separately from the firearm.',
     ammoRestrictions: 'No armor-piercing handgun ammo. Must show ID and undergo background check for all ammo purchases. Ammo must be bought through licensed vendor or shipped to one.',
+    sourceUrl: 'https://oag.ca.gov/firearms',
     summary: 'California has some of the strictest gun laws in the nation. CCW permits issued by county sheriffs with "good cause" requirement effectively removed by Bruen decision but local rules still vary.',
     keyProvisions: [
       'CCW permits issued by county sheriff or police chief',
@@ -160,6 +165,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: 15,
     transportRequirements: null,
     ammoRestrictions: null,
+    sourceUrl: 'https://cbi.colorado.gov/sections/firearms',
     summary: 'Colorado is a shall-issue state for CCW permits. Open carry is generally legal without a permit. Magazine capacity limited to 15 rounds.',
     keyProvisions: [
       'Shall-issue permits through county sheriff',
@@ -188,6 +194,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: 10,
     transportRequirements: 'Without a permit, firearms must be unloaded and stored in the trunk or a locked container not accessible from the passenger compartment.',
     ammoRestrictions: 'Armor-piercing ammunition prohibited. Ammo purchase requires valid permit or certificate.',
+    sourceUrl: 'https://portal.ct.gov/DESPP/Division-of-State-Police/Special-Licensing-and-Firearms',
     summary: 'Connecticut requires a permit for both open and concealed carry. Strict permitting process with training requirements.',
     keyProvisions: [
       'Permit required for open and concealed carry',
@@ -216,6 +223,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: 17,
     transportRequirements: 'Without a CCDW, handguns must be transported unloaded in a closed container.',
     ammoRestrictions: 'Armor-piercing ammunition prohibited.',
+    sourceUrl: 'https://courts.delaware.gov/ccdw/',
     summary: 'Delaware is a shall-issue state. Open carry is legal without a permit. Concealed carry requires a CCDW license.',
     keyProvisions: [
       'CCDW license required for concealed carry',
@@ -243,6 +251,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: 'Firearms may be transported in a vehicle if securely encased (glove box, snapped holster, or closed container) or not readily accessible. No permit needed for vehicle carry.',
     ammoRestrictions: null,
+    sourceUrl: 'https://www.fdacs.gov/Consumer-Resources/Concealed-Weapon-License',
     summary: 'Florida became a permitless carry state in 2023. Previously known for its robust shall-issue CWL system. Stand Your Ground originated here.',
     keyProvisions: [
       'Permitless concealed carry effective July 1, 2023',
@@ -271,6 +280,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: null,
     ammoRestrictions: null,
+    sourceUrl: 'https://gbi.georgia.gov/services/georgia-firearms-license',
     summary: 'Georgia allows permitless carry under the Constitutional Carry Act (2022). Any lawful gun owner 21+ may carry openly or concealed.',
     keyProvisions: [
       'Constitutional carry since April 12, 2022',
@@ -298,6 +308,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: 10,
     transportRequirements: 'Firearms must be unloaded and in an enclosed container when transporting. May only transport between home, repair shop, range, and place of sale.',
     ammoRestrictions: 'All ammunition purchases require a permit to acquire. Ammunition must be stored separately from firearms in a locked container.',
+    sourceUrl: 'https://ag.hawaii.gov/firearms/',
     summary: 'Hawaii has very restrictive gun laws. Concealed carry permits are technically available but historically very rarely issued.',
     keyProvisions: [
       'Post-Bruen: permits must be issued but process remains strict',
@@ -326,6 +337,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: null,
     ammoRestrictions: null,
+    sourceUrl: 'https://isp.idaho.gov/bci/concealed-weapons/',
     summary: 'Idaho allows permitless carry for residents 18+ and non-residents 21+. Very firearms-friendly state.',
     keyProvisions: [
       'Permitless carry for residents 18+',
@@ -354,6 +366,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: 'Without a CCL, firearms must be unloaded, enclosed in a case, and not immediately accessible. FOID card required. Non-residents may transport through with firearm unloaded and enclosed per FOPA.',
     ammoRestrictions: 'FOID card required to purchase ammunition. Armor-piercing handgun ammo prohibited. .50 BMG banned under Protect Illinois Communities Act.',
+    sourceUrl: 'https://isp.illinois.gov/Foid',
     summary: 'Illinois requires a FOID card to possess firearms and a CCL for concealed carry. Was last state to adopt concealed carry (2014). Assault weapons ban passed 2023.',
     keyProvisions: [
       'FOID card required to possess firearms/ammunition',
@@ -382,6 +395,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: null,
     ammoRestrictions: null,
+    sourceUrl: 'https://www.in.gov/isp/firearms/',
     summary: 'Indiana is a permitless carry state as of July 1, 2022. Any person 18+ who can legally possess a firearm may carry without a permit.',
     keyProvisions: [
       'Permitless carry since July 1, 2022',
@@ -410,6 +424,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: null,
     ammoRestrictions: null,
+    sourceUrl: 'https://dps.iowa.gov/divisions/administrative-services/weapons-permits',
     summary: 'Iowa adopted permitless carry in 2021. Also passed a constitutional amendment protecting the right to keep and bear arms.',
     keyProvisions: [
       'Permitless carry since July 1, 2021',
@@ -437,6 +452,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: null,
     ammoRestrictions: null,
+    sourceUrl: 'https://ag.ks.gov/licensing/concealed-carry',
     summary: 'Kansas is a permitless carry state since 2015. Any person 21+ who can legally possess a firearm may carry openly or concealed.',
     keyProvisions: [
       'Permitless carry since 2015',
@@ -464,6 +480,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: null,
     ammoRestrictions: null,
+    sourceUrl: 'https://kentuckystatepolice.gov/ccdw/',
     summary: 'Kentucky allows permitless concealed carry for residents 21+. CCDW license optional for reciprocity.',
     keyProvisions: [
       'Permitless carry since 2019',
@@ -491,6 +508,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: null,
     ammoRestrictions: null,
+    sourceUrl: 'https://www.lsp.org/services/concealed-handgun-permits/',
     summary: 'Louisiana adopted permitless carry in 2024. Open carry was already legal without a permit.',
     keyProvisions: [
       'Permitless carry effective July 4, 2024',
@@ -518,6 +536,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: null,
     ammoRestrictions: null,
+    sourceUrl: 'https://www.maine.gov/dps/msp/licenses-permits/concealed-carry',
     summary: 'Maine allows permitless carry for anyone 21+ (or 18+ military). Permits available for reciprocity purposes.',
     keyProvisions: [
       'Permitless carry since 2015',
@@ -545,6 +564,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: 10,
     transportRequirements: 'Without a carry permit, handguns may only be transported between specific locations (home, range, shop) and must be unloaded and in an enclosed case.',
     ammoRestrictions: 'Armor-piercing handgun ammunition prohibited.',
+    sourceUrl: 'https://mdsp.maryland.gov/Organization/Pages/CriminalInvestigationBureau/LicensingDivision/Firearms.aspx',
     summary: 'Maryland transitioned to shall-issue after Bruen. Still has strict regulations including handgun qualification license and magazine limits.',
     keyProvisions: [
       'Shall-issue after Bruen decision',
@@ -573,6 +593,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: 10,
     transportRequirements: 'Firearms must be unloaded and in a locked container during transport. Trigger lock or cable lock required during storage. All firearms must be stored in a locked container.',
     ammoRestrictions: 'Armor-piercing ammunition prohibited. License (LTC or FID) required to purchase ammunition. Ammo may only be sold by licensed dealers.',
+    sourceUrl: 'https://www.mass.gov/firearms-registration',
     summary: 'Massachusetts has some of the strictest gun laws. LTC required for most firearms. Local police chiefs have discretion on issuing.',
     keyProvisions: [
       'License to Carry (LTC) required - may-issue',
@@ -602,6 +623,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: 'Without a CPL, handguns must be unloaded and in a closed case in the trunk (or if no trunk, not readily accessible to occupants). Safe storage law requires secured storage if a minor could access.',
     ammoRestrictions: null,
+    sourceUrl: 'https://www.michigan.gov/msp/services/firearms',
     summary: 'Michigan is shall-issue for CPL. Open carry legal without a permit. Universal background checks enacted in 2024.',
     keyProvisions: [
       'CPL required for concealed carry',
@@ -630,6 +652,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: 'Without a permit to carry, handguns must be unloaded, in a closed and fastened case, and in the trunk or not accessible from the passenger compartment.',
     ammoRestrictions: null,
+    sourceUrl: 'https://dps.mn.gov/divisions/bca/bca-divisions/administrative/Pages/firearms-permits.aspx',
     summary: 'Minnesota is shall-issue. Permit to carry covers both open and concealed carry. Permit to purchase or background check required.',
     keyProvisions: [
       'Permit to Carry covers open and concealed',
@@ -658,6 +681,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: null,
     ammoRestrictions: null,
+    sourceUrl: 'https://www.dps.ms.gov/firearms/concealed-carry',
     summary: 'Mississippi allows permitless carry. Enhanced carry license available for carrying in additional locations.',
     keyProvisions: [
       'Permitless carry for 18+',
@@ -685,6 +709,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: null,
     ammoRestrictions: null,
+    sourceUrl: 'https://www.mshp.dps.missouri.gov/MSHPWeb/PatrolDivisions/CJIS/CCW.html',
     summary: 'Missouri allows permitless carry for anyone 19+ (21+ for handguns). Second Amendment Preservation Act enacted.',
     keyProvisions: [
       'Permitless carry since 2017',
@@ -712,6 +737,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: null,
     ammoRestrictions: null,
+    sourceUrl: 'https://dojmt.gov/enforcement/concealed-weapons/',
     summary: 'Montana is a permitless carry state. CWP optional for reciprocity.',
     keyProvisions: [
       'Permitless carry since 2021',
@@ -739,6 +765,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: null,
     ammoRestrictions: null,
+    sourceUrl: 'https://statepatrol.nebraska.gov/concealed-handgun-permits',
     summary: 'Nebraska adopted permitless carry in 2023. Previously required CHP for concealed carry.',
     keyProvisions: [
       'Permitless carry since September 2023',
@@ -766,6 +793,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: null,
     ammoRestrictions: 'Metal-penetrating (armor-piercing) handgun ammo prohibited.',
+    sourceUrl: 'https://dps.nv.gov/Concealed-Firearms/',
     summary: 'Nevada is shall-issue for CCW permits. Open carry legal without a permit. Universal background checks required.',
     keyProvisions: [
       'CCW permit required for concealed carry',
@@ -793,6 +821,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: null,
     ammoRestrictions: null,
+    sourceUrl: 'https://www.nh.gov/safety/divisions/nhsp/jib/firearms/',
     summary: 'New Hampshire allows permitless carry for any person 18+ who can legally possess a firearm.',
     keyProvisions: [
       'Permitless carry since 2017',
@@ -820,6 +849,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: 10,
     transportRequirements: 'Firearms must be unloaded and in a locked container in the trunk. Ammunition must be stored separately. Transport only allowed between home, range, gunsmith, and other limited destinations.',
     ammoRestrictions: 'Hollow-point ammunition is restricted — may only possess at home, range, or while hunting. Armor-piercing ammunition prohibited.',
+    sourceUrl: 'https://www.njsp.org/firearms/',
     summary: 'New Jersey has very strict gun laws. CCW permits are shall-issue after Bruen but extensive sensitive places restrictions were enacted.',
     keyProvisions: [
       'Shall-issue after Bruen but with extensive restrictions',
@@ -849,6 +879,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: 'Without a CCW, handguns may not be concealed on your person but may be carried loaded in a vehicle if not concealed.',
     ammoRestrictions: null,
+    sourceUrl: 'https://www.dps.nm.gov/concealed-carry',
     summary: 'New Mexico is shall-issue for concealed carry. Open carry is legal without a permit.',
     keyProvisions: [
       'CCW license required for concealed carry',
@@ -876,6 +907,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: 10,
     transportRequirements: 'Without a license, firearms must be unloaded and in a locked container not accessible from the passenger compartment. Ammunition stored separately.',
     ammoRestrictions: 'Armor-piercing and tracer ammunition prohibited. Background check required for ammunition purchases. Ammo sales must go through a licensed dealer.',
+    sourceUrl: 'https://safeact.ny.gov/',
     summary: 'New York has among the most restrictive gun laws. After Bruen struck down the proper cause requirement, NY passed the CCIA with extensive new restrictions.',
     keyProvisions: [
       'Concealed Carry Improvement Act (CCIA) post-Bruen',
@@ -905,6 +937,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: 'Without a CHP, handguns may be transported in a vehicle if not concealed on the person. Must be in a closed compartment, container, or the trunk.',
     ammoRestrictions: 'Teflon-coated (armor-piercing) ammunition prohibited.',
+    sourceUrl: 'https://www.ncsbi.gov/Services/Firearms',
     summary: 'North Carolina is shall-issue for CHP. Open carry legal without permit. Pistol purchase permit eliminated in 2023.',
     keyProvisions: [
       'CHP required for concealed carry',
@@ -932,6 +965,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: null,
     ammoRestrictions: null,
+    sourceUrl: 'https://attorneygeneral.nd.gov/public-safety/concealed-weapons-licenses',
     summary: 'North Dakota allows permitless carry for residents. CWL available for reciprocity.',
     keyProvisions: [
       'Permitless carry for residents since 2017',
@@ -959,6 +993,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: null,
     ammoRestrictions: null,
+    sourceUrl: 'https://www.ohioattorneygeneral.gov/Law-Enforcement/Concealed-Carry',
     summary: 'Ohio is a permitless carry state since June 2022. CHL optional for reciprocity benefits.',
     keyProvisions: [
       'Permitless carry since June 13, 2022',
@@ -986,6 +1021,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: null,
     ammoRestrictions: null,
+    sourceUrl: 'https://osbi.ok.gov/sda',
     summary: 'Oklahoma allows permitless carry for anyone 21+ (or 18+ military) who can legally possess a firearm.',
     keyProvisions: [
       'Permitless carry since November 2019',
@@ -1013,6 +1049,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: 10,
     transportRequirements: 'Without a CHL, firearms must be unloaded and not concealed or readily accessible during transport.',
     ammoRestrictions: null,
+    sourceUrl: 'https://www.oregon.gov/osp/programs/chl',
     summary: 'Oregon is shall-issue for CHL. Measure 114 (2022) introduced permit-to-purchase and magazine limits, though implementation has been challenged in court.',
     keyProvisions: [
       'CHL required for concealed carry',
@@ -1041,6 +1078,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: 'Without a LTCF, firearms must be unloaded and in a secure container during transport (except to/from home, range, gunsmith).',
     ammoRestrictions: 'Armor-piercing ammunition prohibited for handguns.',
+    sourceUrl: 'https://www.psp.pa.gov/firearms-information/Pages/Firearms-Information.aspx',
     summary: 'Pennsylvania is shall-issue for LTCF. Open carry legal without permit except in Philadelphia (permit required).',
     keyProvisions: [
       'LTCF required for concealed carry',
@@ -1069,6 +1107,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: 10,
     transportRequirements: 'Without a carry permit, firearms should be unloaded and in a separate container from ammunition during transport.',
     ammoRestrictions: 'Armor-piercing ammunition prohibited.',
+    sourceUrl: 'https://riag.ri.gov/public-safety/firearms',
     summary: 'Rhode Island is shall-issue through the AG or local police chief. Magazine capacity limited to 10 rounds as of 2022.',
     keyProvisions: [
       'Carry permit through AG or local police',
@@ -1096,6 +1135,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: null,
     ammoRestrictions: null,
+    sourceUrl: 'https://www.sled.sc.gov/concealed-weapon-permit/',
     summary: 'South Carolina adopted permitless carry in 2024. Open carry was legalized in 2021.',
     keyProvisions: [
       'Permitless carry effective March 7, 2024',
@@ -1123,6 +1163,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: null,
     ammoRestrictions: null,
+    sourceUrl: 'https://atg.sd.gov/law-enforcement/concealed-carry-permits',
     summary: 'South Dakota allows permitless carry for anyone 18+ who can legally possess a firearm.',
     keyProvisions: [
       'Permitless carry since 2019',
@@ -1150,6 +1191,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: null,
     ammoRestrictions: null,
+    sourceUrl: 'https://www.tn.gov/safety/tnhp/handgun/handgunmain.html',
     summary: 'Tennessee allows permitless carry for anyone 21+ (or 18+ military). Enhanced and Concealed HCPs available.',
     keyProvisions: [
       'Permitless carry since July 1, 2021',
@@ -1177,6 +1219,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: null,
     ammoRestrictions: null,
+    sourceUrl: 'https://www.dps.texas.gov/section/handgun-licensing',
     summary: 'Texas adopted permitless carry (HB 1927) in September 2021. LTC still available and provides some additional benefits.',
     keyProvisions: [
       'Permitless carry since September 1, 2021',
@@ -1205,6 +1248,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: null,
     ammoRestrictions: null,
+    sourceUrl: 'https://bci.utah.gov/concealed-firearm/',
     summary: 'Utah allows permitless carry for 21+. The Utah CFP is one of the most widely recognized permits nationally.',
     keyProvisions: [
       'Permitless carry since 2021',
@@ -1232,6 +1276,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: 15,
     transportRequirements: null,
     ammoRestrictions: 'Armor-piercing ammunition prohibited.',
+    sourceUrl: 'https://dps.vermont.gov/',
     summary: 'Vermont has always allowed permitless carry (the original "Vermont carry"). No permit system exists. Recent laws added magazine limits and other restrictions.',
     keyProvisions: [
       'No permit system (always been permitless)',
@@ -1260,6 +1305,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: 'Without a CHP, handguns in a vehicle must be in a secured container or compartment. Loaded long guns may not be carried in vehicles on public roads.',
     ammoRestrictions: 'Teflon-coated and restricted ammunition prohibited in certain contexts.',
+    sourceUrl: 'https://www.vsp.virginia.gov/sections-units-bureaus/bureau-of-criminal-investigation/firearms-transactions-center/',
     summary: 'Virginia is shall-issue for CHP. Open carry legal without permit for 18+.',
     keyProvisions: [
       'CHP required for concealed carry',
@@ -1288,6 +1334,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: 10,
     transportRequirements: 'Without a CPL, pistols must be unloaded and in a locked container when transported in a vehicle.',
     ammoRestrictions: null,
+    sourceUrl: 'https://www.dol.wa.gov/business/firearms/',
     summary: 'Washington is shall-issue for CPL. Recent years have seen significant new restrictions including assault weapons ban and magazine limits.',
     keyProvisions: [
       'CPL required for concealed carry',
@@ -1317,6 +1364,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: null,
     ammoRestrictions: null,
+    sourceUrl: 'https://ago.wv.gov/Pages/Concealed-Weapons-Permit.aspx',
     summary: 'West Virginia allows permitless carry for 21+. Optional CWP for reciprocity.',
     keyProvisions: [
       'Permitless carry since 2016',
@@ -1344,6 +1392,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: null,
     ammoRestrictions: null,
+    sourceUrl: 'https://www.doj.state.wi.us/dles/cib/conceal-carry',
     summary: 'Wisconsin is shall-issue for CCW license. Open carry legal without permit.',
     keyProvisions: [
       'CCW license required for concealed carry',
@@ -1371,6 +1420,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: null,
     ammoRestrictions: null,
+    sourceUrl: 'https://ag.wyo.gov/divisions/dci/concealed-carry',
     summary: 'Wyoming allows permitless carry for residents 21+. WCCW permit available for reciprocity.',
     keyProvisions: [
       'Permitless carry for residents since 2011',
@@ -1398,6 +1448,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: 10,
     transportRequirements: 'Firearms must be unloaded, in a locked container, and separate from ammunition. Only registered firearms may be transported. No loaded firearms in vehicles without a carry permit.',
     ammoRestrictions: 'Armor-piercing, tracer, and incendiary ammunition prohibited. Ammunition must be registered to the firearm caliber you own.',
+    sourceUrl: 'https://mpdc.dc.gov/page/firearms-registration',
     summary: 'DC is shall-issue after court rulings but maintains very strict regulations. All firearms must be registered.',
     keyProvisions: [
       'Concealed carry permit required (shall-issue)',

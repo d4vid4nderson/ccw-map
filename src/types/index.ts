@@ -18,6 +18,7 @@ export interface StateLaw {
   magazineRestriction: number | null; // null = no restriction
   transportRequirements: string | null; // How firearms must be stored/transported in vehicles
   ammoRestrictions: string | null; // Ammunition-specific laws (hollow point bans, etc.)
+  sourceUrl: string; // Official state government page for gun laws
   summary: string;
   keyProvisions: string[];
   lastUpdated: string;

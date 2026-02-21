@@ -49,7 +49,7 @@ export default function MapScreen() {
 
   const panelWidth = isWide ? 360 : width * 0.85;
   const panelMaxHeight = isWide ? height - 100 : height * 0.6;
-  const menuWidth = isWide ? 280 : width * 0.75;
+  const menuWidth = isWide ? 300 : width * 0.8;
 
   const s = makeStyles(theme);
 
@@ -73,12 +73,17 @@ export default function MapScreen() {
             {
               width: panelWidth,
               maxHeight: panelMaxHeight,
-              left: isWide ? 60 : 52,
             },
           ]}
         >
           {/* Panel header */}
           <View style={s.panelHeader}>
+            <Pressable
+              onPress={() => setMenuOpen(true)}
+              style={s.panelMenuButton}
+            >
+              <Text style={s.panelMenuIcon}>☰</Text>
+            </Pressable>
             <View style={s.tabRow}>
               <Pressable
                 style={[s.tabButton, !showList && s.tabButtonActive]}
@@ -191,32 +196,28 @@ export default function MapScreen() {
         </View>
       )}
 
-      {/* Reopen panel button when closed */}
+      {/* Single menu button when panel is closed */}
       {!panelOpen && !menuOpen && (
         <Pressable
-          style={[s.openPanelButton, { left: isWide ? 60 : 52 }]}
-          onPress={() => setPanelOpen(true)}
+          style={s.floatingMenuButton}
+          onPress={() => setMenuOpen(true)}
         >
-          <Text style={s.openPanelIcon}>☰</Text>
+          <Text style={s.floatingMenuIcon}>☰</Text>
         </Pressable>
       )}
-
-      {/* Left nav rail / hamburger */}
-      <View style={s.navRail}>
-        <Pressable
-          style={[s.navRailButton, menuOpen && s.navRailButtonActive]}
-          onPress={() => setMenuOpen(!menuOpen)}
-        >
-          <Text style={s.navRailIcon}>{menuOpen ? '✕' : '☰'}</Text>
-        </Pressable>
-      </View>
 
       {/* Nav menu overlay */}
       {menuOpen && (
         <>
           <Pressable style={s.menuBackdrop} onPress={() => setMenuOpen(false)} />
-          <View style={[s.menuContainer, { width: menuWidth, left: isWide ? 48 : 44 }]}>
-            <NavMenu onClose={() => setMenuOpen(false)} />
+          <View style={[s.menuContainer, { width: menuWidth }]}>
+            <NavMenu
+              onClose={() => setMenuOpen(false)}
+              onShowPanel={() => {
+                setPanelOpen(true);
+                setMenuOpen(false);
+              }}
+            />
           </View>
         </>
       )}
@@ -234,63 +235,30 @@ function makeStyles(theme: Theme) {
       ...StyleSheet.absoluteFillObject,
     },
 
-    // Left nav rail
-    navRail: {
-      position: 'absolute',
-      top: 12,
-      left: 8,
-      zIndex: 20,
-    },
-    navRailButton: {
-      backgroundColor: theme.overlayStrong,
-      borderRadius: 8,
-      width: 36,
-      height: 36,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderWidth: 1,
-      borderColor: theme.border,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.15,
-      shadowRadius: 6,
-      elevation: 3,
-    },
-    navRailButtonActive: {
-      backgroundColor: theme.accent,
-      borderColor: theme.accent,
-    },
-    navRailIcon: {
-      color: theme.text,
-      fontSize: 16,
-    },
-
     // Nav menu
     menuBackdrop: {
       ...StyleSheet.absoluteFillObject,
-      backgroundColor: 'rgba(0,0,0,0.3)',
-      zIndex: 15,
+      backgroundColor: 'rgba(0,0,0,0.4)',
+      zIndex: 20,
     },
     menuContainer: {
       position: 'absolute',
-      top: 12,
-      bottom: 12,
-      borderRadius: 12,
-      overflow: 'hidden',
-      zIndex: 16,
-      borderWidth: 1,
-      borderColor: theme.border,
+      top: 0,
+      bottom: 0,
+      left: 0,
+      zIndex: 21,
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.2,
-      shadowRadius: 10,
-      elevation: 6,
+      shadowOffset: { width: 4, height: 0 },
+      shadowOpacity: 0.25,
+      shadowRadius: 16,
+      elevation: 8,
     },
 
     // Floating panel
     floatingPanel: {
       position: 'absolute',
       top: 12,
+      left: 12,
       bottom: 12,
       backgroundColor: theme.overlayStrong,
       borderRadius: 12,
@@ -309,6 +277,14 @@ function makeStyles(theme: Theme) {
       alignItems: 'center',
       borderBottomWidth: 1,
       borderBottomColor: theme.border,
+    },
+    panelMenuButton: {
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+    },
+    panelMenuIcon: {
+      color: theme.text,
+      fontSize: 16,
     },
     tabRow: {
       flex: 1,
@@ -416,10 +392,11 @@ function makeStyles(theme: Theme) {
       lineHeight: 18,
     },
 
-    // Reopen button
-    openPanelButton: {
+    // Single floating menu button (when panel is closed)
+    floatingMenuButton: {
       position: 'absolute',
       top: 12,
+      left: 12,
       backgroundColor: theme.overlayStrong,
       borderRadius: 8,
       width: 40,
@@ -435,7 +412,7 @@ function makeStyles(theme: Theme) {
       elevation: 3,
       zIndex: 10,
     },
-    openPanelIcon: {
+    floatingMenuIcon: {
       color: theme.text,
       fontSize: 18,
     },

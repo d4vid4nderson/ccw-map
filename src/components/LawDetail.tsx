@@ -108,6 +108,24 @@ export function LawDetail({ law }: LawDetailProps) {
         />
       </View>
 
+      {(law.transportRequirements || law.ammoRestrictions) && (
+        <View style={s.section}>
+          <Text style={s.sectionTitle}>Transport & Storage</Text>
+          {law.transportRequirements && (
+            <View style={s.transportRow}>
+              <Text style={s.transportLabel}>Vehicle Transport</Text>
+              <Text style={s.transportText}>{law.transportRequirements}</Text>
+            </View>
+          )}
+          {law.ammoRestrictions && (
+            <View style={s.transportRow}>
+              <Text style={s.transportLabel}>Ammunition</Text>
+              <Text style={s.transportText}>{law.ammoRestrictions}</Text>
+            </View>
+          )}
+        </View>
+      )}
+
       <View style={s.section}>
         <Text style={s.sectionTitle}>Key Provisions</Text>
         {law.keyProvisions.map((provision, index) => (
@@ -171,6 +189,24 @@ function makeStyles(theme: Theme) {
       fontSize: 14,
       fontWeight: '600',
       textTransform: 'capitalize',
+    },
+    transportRow: {
+      paddingVertical: 8,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+    },
+    transportLabel: {
+      color: theme.textSecondary,
+      fontSize: 12,
+      fontWeight: '700',
+      textTransform: 'uppercase',
+      letterSpacing: 0.3,
+      marginBottom: 4,
+    },
+    transportText: {
+      color: theme.text,
+      fontSize: 13,
+      lineHeight: 19,
     },
     provisionRow: {
       flexDirection: 'row',

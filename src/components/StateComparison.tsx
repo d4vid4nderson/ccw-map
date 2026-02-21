@@ -112,6 +112,18 @@ function buildCompareFields(a: StateLaw, b: StateLaw): CompareField[] {
     formatBool(b.preemption),
     'Local ordinances may apply in one state — check city/county laws.'
   );
+  add(
+    'Transport Rules',
+    a.transportRequirements ? 'Has restrictions' : 'No special rules',
+    b.transportRequirements ? 'Has restrictions' : 'No special rules',
+    'Vehicle transport rules differ — check storage requirements before crossing the border.'
+  );
+  add(
+    'Ammo Restrictions',
+    a.ammoRestrictions ? 'Has restrictions' : 'None',
+    b.ammoRestrictions ? 'Has restrictions' : 'None',
+    'Ammunition laws differ — some ammo types may be illegal across the border.'
+  );
 
   return fields;
 }
@@ -186,6 +198,36 @@ function buildTravelWarnings(a: StateLaw, b: StateLaw): string[] {
   } else if (!a.preemption && b.preemption) {
     warnings.push(
       `${a.stateName} does not have state preemption — local cities and counties may have stricter gun laws. Research your specific destination.`
+    );
+  }
+
+  // Transport requirements
+  if (b.transportRequirements && !a.transportRequirements) {
+    warnings.push(
+      `${b.stateName} has specific vehicle transport rules: ${b.transportRequirements}`
+    );
+  } else if (a.transportRequirements && !b.transportRequirements) {
+    warnings.push(
+      `${a.stateName} has specific vehicle transport rules: ${a.transportRequirements}`
+    );
+  } else if (a.transportRequirements && b.transportRequirements && a.transportRequirements !== b.transportRequirements) {
+    warnings.push(
+      `Both states have different transport rules. ${a.stateCode}: ${a.transportRequirements} ${b.stateCode}: ${b.transportRequirements}`
+    );
+  }
+
+  // Ammo restrictions
+  if (b.ammoRestrictions && !a.ammoRestrictions) {
+    warnings.push(
+      `${b.stateName} has ammunition restrictions: ${b.ammoRestrictions}`
+    );
+  } else if (a.ammoRestrictions && !b.ammoRestrictions) {
+    warnings.push(
+      `${a.stateName} has ammunition restrictions: ${a.ammoRestrictions}`
+    );
+  } else if (a.ammoRestrictions && b.ammoRestrictions && a.ammoRestrictions !== b.ammoRestrictions) {
+    warnings.push(
+      `Both states have different ammo restrictions. Check that your ammunition is legal in both ${a.stateCode} and ${b.stateCode}.`
     );
   }
 

@@ -16,6 +16,8 @@ export interface StateLaw {
   dutyToRetreat: boolean;
   preemption: boolean;
   magazineRestriction: number | null; // null = no restriction
+  transportRequirements: string | null; // How firearms must be stored/transported in vehicles
+  ammoRestrictions: string | null; // Ammunition-specific laws (hollow point bans, etc.)
   summary: string;
   keyProvisions: string[];
   lastUpdated: string;

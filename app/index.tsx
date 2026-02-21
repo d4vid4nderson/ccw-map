@@ -50,8 +50,8 @@ export default function MapScreen() {
         return;
       }
 
-      // In compare-waiting mode (mobile): pick second state
-      if (compareMode && compareStateA && !compareStateB && stateCode !== compareStateA) {
+      // In compare mode: pick or swap second state
+      if (compareMode && compareStateA && stateCode !== compareStateA) {
         setCompareStateB(stateCode);
         setPanelOpen(true);
         return;

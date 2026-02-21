@@ -39,14 +39,14 @@ export function WebMap({ selectedState, onStatePress, getStateColor }: WebMapPro
     try {
       mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;
 
-      if (MAPBOX_ACCESS_TOKEN === 'YOUR_MAPBOX_PUBLIC_TOKEN') {
-        setError('Mapbox token not configured. Update src/constants/mapbox.ts');
+      if (!MAPBOX_ACCESS_TOKEN) {
+        setError('Mapbox token not configured. Set EXPO_PUBLIC_MAPBOX_TOKEN env variable.');
         return;
       }
 
       const mapInstance = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/dark-v11',
+        style: 'mapbox://styles/david4nderson/cmlwkl3dj000501s7dymn31sm',
         center: US_CENTER,
         zoom: US_ZOOM,
         minZoom: 2,

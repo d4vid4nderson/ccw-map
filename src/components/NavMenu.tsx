@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Switch, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
-import { Theme } from '../constants/colors';
+import { Theme, themeList } from '../constants/colors';
 import { getAllStates } from '../data/stateLaws';
 import { codeToStateName } from '../hooks/useMapbox';
 
@@ -12,7 +12,7 @@ interface NavMenuProps {
 }
 
 export function NavMenu({ onClose, onShowMap, onShowStates }: NavMenuProps) {
-  const { theme, themeName, setTheme, toggleTheme, homeState, setHomeState } = useTheme();
+  const { theme, themeName, setTheme, homeState, setHomeState } = useTheme();
   const [activeSection, setActiveSection] = useState<'nav' | 'settings'>('nav');
   const [statePickerOpen, setStatePickerOpen] = useState(false);
   const s = makeStyles(theme);
@@ -185,78 +185,37 @@ export function NavMenu({ onClose, onShowMap, onShowStates }: NavMenuProps) {
 
           <View style={s.dividerFull} />
 
-          {/* Appearance section */}
+          {/* Theme section */}
           <View style={s.settingsGroup}>
-            <Text style={s.settingsGroupTitle}>Appearance</Text>
-
-            {/* Dark mode toggle */}
-            <View style={s.settingRow}>
-              <View style={s.settingInfo}>
-                <Text style={s.settingLabel}>Dark Mode</Text>
-                <Text style={s.settingDesc}>Switch to dark interface</Text>
-              </View>
-              <Switch
-                value={themeName === 'dark'}
-                onValueChange={toggleTheme}
-                trackColor={{
-                  false: theme.name === 'dark' ? '#555' : '#ccc',
-                  true: theme.accent,
-                }}
-                thumbColor={'#fff'}
-              />
-            </View>
-
-            {/* Theme picker */}
-            <Text style={s.settingSubhead}>Theme</Text>
+            <Text style={s.settingsGroupTitle}>Theme</Text>
 
             <View style={s.themeGrid}>
-              <Pressable
-                style={[
-                  s.themeCard,
-                  themeName === 'light' && s.themeCardActive,
-                ]}
-                onPress={() => setTheme('light')}
-              >
-                <View style={s.themePreviewLight}>
-                  <View style={s.previewBarLight} />
-                  <View style={s.previewDotsRow}>
-                    <View style={[s.previewDot, { backgroundColor: '#d0d0d0' }]} />
-                    <View style={[s.previewDot, { backgroundColor: '#d0d0d0' }]} />
-                  </View>
-                </View>
-                <Text
+              {themeList.map((t) => (
+                <Pressable
+                  key={t.name}
                   style={[
-                    s.themeCardLabel,
-                    themeName === 'light' && s.themeCardLabelActive,
+                    s.themeCard,
+                    themeName === t.name && s.themeCardActive,
                   ]}
+                  onPress={() => setTheme(t.name)}
                 >
-                  Light
-                </Text>
-              </Pressable>
-
-              <Pressable
-                style={[
-                  s.themeCard,
-                  themeName === 'dark' && s.themeCardActive,
-                ]}
-                onPress={() => setTheme('dark')}
-              >
-                <View style={s.themePreviewDark}>
-                  <View style={s.previewBarDark} />
-                  <View style={s.previewDotsRow}>
-                    <View style={[s.previewDot, { backgroundColor: '#555' }]} />
-                    <View style={[s.previewDot, { backgroundColor: '#555' }]} />
+                  <View style={[s.themePreview, { backgroundColor: t.previewBg }]}>
+                    <View style={[s.previewBar, { backgroundColor: t.previewBar }]} />
+                    <View style={s.previewDotsRow}>
+                      <View style={[s.previewDot, { backgroundColor: t.previewDots[0] }]} />
+                      <View style={[s.previewDot, { backgroundColor: t.previewDots[1] }]} />
+                    </View>
                   </View>
-                </View>
-                <Text
-                  style={[
-                    s.themeCardLabel,
-                    themeName === 'dark' && s.themeCardLabelActive,
-                  ]}
-                >
-                  Dark
-                </Text>
-              </Pressable>
+                  <Text
+                    style={[
+                      s.themeCardLabel,
+                      themeName === t.name && s.themeCardLabelActive,
+                    ]}
+                  >
+                    {t.label}
+                  </Text>
+                </Pressable>
+              ))}
             </View>
           </View>
         </ScrollView>
@@ -422,14 +381,6 @@ function makeStyles(theme: Theme) {
       letterSpacing: 0.8,
       marginBottom: 16,
     },
-    settingRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingVertical: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.border,
-    },
     settingRowColumn: {
       paddingVertical: 4,
     },
@@ -446,16 +397,6 @@ function makeStyles(theme: Theme) {
       fontSize: 12,
       marginTop: 2,
     },
-    settingSubhead: {
-      color: theme.textMuted,
-      fontSize: 12,
-      fontWeight: '700',
-      textTransform: 'uppercase',
-      letterSpacing: 0.8,
-      marginTop: 24,
-      marginBottom: 12,
-    },
-
     // Dropdown
     dropdown: {
       flexDirection: 'row',
@@ -520,62 +461,47 @@ function makeStyles(theme: Theme) {
     // Theme picker cards
     themeGrid: {
       flexDirection: 'row',
-      gap: 12,
+      flexWrap: 'wrap',
+      gap: 8,
     },
     themeCard: {
-      flex: 1,
-      borderRadius: 12,
+      width: '47%',
+      borderRadius: 10,
       borderWidth: 2,
       borderColor: theme.border,
-      padding: 4,
+      padding: 3,
       alignItems: 'center',
     },
     themeCardActive: {
       borderColor: theme.accent,
     },
-    themePreviewLight: {
+    themePreview: {
       width: '100%',
-      height: 64,
-      backgroundColor: '#f2f2f2',
-      borderRadius: 8,
-      padding: 10,
+      height: 48,
+      borderRadius: 7,
+      padding: 8,
       justifyContent: 'space-between',
     },
-    previewBarLight: {
-      width: '60%',
-      height: 6,
+    previewBar: {
+      width: '55%',
+      height: 5,
       borderRadius: 3,
-      backgroundColor: '#ddd',
-    },
-    themePreviewDark: {
-      width: '100%',
-      height: 64,
-      backgroundColor: '#1a1a1a',
-      borderRadius: 8,
-      padding: 10,
-      justifyContent: 'space-between',
-    },
-    previewBarDark: {
-      width: '60%',
-      height: 6,
-      borderRadius: 3,
-      backgroundColor: '#3a3a3a',
     },
     previewDotsRow: {
       flexDirection: 'row',
-      gap: 4,
+      gap: 3,
     },
     previewDot: {
-      width: 8,
-      height: 8,
+      width: 7,
+      height: 7,
       borderRadius: 4,
     },
     themeCardLabel: {
       color: theme.textMuted,
-      fontSize: 13,
+      fontSize: 11,
       fontWeight: '600',
-      marginTop: 8,
-      marginBottom: 6,
+      marginTop: 5,
+      marginBottom: 4,
     },
     themeCardLabelActive: {
       color: theme.text,

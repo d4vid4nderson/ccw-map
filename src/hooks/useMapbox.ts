@@ -2,29 +2,31 @@ import { useState, useCallback } from 'react';
 import { ReciprocityStatus } from '../types';
 import { getReciprocityStatus, permitlessCarryStates } from '../data/reciprocity';
 import { stateLaws } from '../data/stateLaws';
+import { useTheme } from '../context/ThemeContext';
 
 export function useReciprocityMap() {
   const [selectedState, setSelectedState] = useState<string | null>(null);
+  const { theme } = useTheme();
 
   const getStateColor = useCallback(
     (stateCode: string): string => {
       if (!selectedState) {
         // No state selected: color by permit type
         const law = stateLaws[stateCode];
-        if (!law) return '#333355';
+        if (!law) return theme.map.fallback;
 
-        if (law.permitlessCarry) return '#4caf50';
+        if (law.permitlessCarry) return theme.reciprocity.permitless;
         switch (law.permitType) {
           case 'unrestricted':
-            return '#2e7d32';
+            return theme.reciprocity.unrestricted;
           case 'shall-issue':
-            return '#ff9800';
+            return theme.permitType['may-issue'];
           case 'may-issue':
-            return '#f44336';
+            return theme.permitType['no-issue'];
           case 'no-issue':
-            return '#b71c1c';
+            return theme.error;
           default:
-            return '#333355';
+            return theme.map.fallback;
         }
       }
 
@@ -32,20 +34,20 @@ export function useReciprocityMap() {
       const status = getReciprocityStatus(selectedState, stateCode);
       switch (status) {
         case 'home':
-          return '#4a90d9';
+          return theme.reciprocity.home;
         case 'permitless':
-          return '#8bc34a';
+          return theme.reciprocity.permitless;
         case 'full':
-          return '#4caf50';
+          return theme.reciprocity.full;
         case 'partial':
-          return '#ff9800';
+          return theme.reciprocity.partial;
         case 'none':
-          return '#f44336';
+          return theme.reciprocity.none;
         default:
-          return '#333355';
+          return theme.map.fallback;
       }
     },
-    [selectedState]
+    [selectedState, theme]
   );
 
   const selectState = useCallback((stateCode: string | null) => {

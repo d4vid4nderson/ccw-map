@@ -8,21 +8,24 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Colors } from '../src/constants/colors';
+import { useTheme } from '../src/context/ThemeContext';
+import { Theme } from '../src/constants/colors';
 import { useReciprocityMap, codeToStateName } from '../src/hooks/useMapbox';
 import { stateLaws, getAllStates } from '../src/data/stateLaws';
-import { getReciprocitySummary } from '../src/data/reciprocity';
 import { MapLegend } from '../src/components/MapLegend';
 import { StateCard } from '../src/components/StateCard';
 import { WebMap } from '../src/components/WebMap';
+import { NavMenu } from '../src/components/NavMenu';
 
 export default function MapScreen() {
   const router = useRouter();
   const { width, height } = useWindowDimensions();
+  const { theme } = useTheme();
   const isWide = width > 768;
   const { selectedState, selectState, getStateColor } = useReciprocityMap();
   const [showList, setShowList] = useState(false);
   const [panelOpen, setPanelOpen] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleStatePress = useCallback(
     (stateCode: string) => {
@@ -46,11 +49,14 @@ export default function MapScreen() {
 
   const panelWidth = isWide ? 360 : width * 0.85;
   const panelMaxHeight = isWide ? height - 100 : height * 0.6;
+  const menuWidth = isWide ? 280 : width * 0.75;
+
+  const s = makeStyles(theme);
 
   return (
-    <View style={styles.container}>
+    <View style={s.container}>
       {/* Full-screen map */}
-      <View style={styles.mapContainer}>
+      <View style={s.mapContainer}>
         <WebMap
           selectedState={selectedState}
           onStatePress={handleStatePress}
@@ -60,107 +66,105 @@ export default function MapScreen() {
       </View>
 
       {/* Floating info panel */}
-      {panelOpen && (
+      {panelOpen && !menuOpen && (
         <View
           style={[
-            styles.floatingPanel,
+            s.floatingPanel,
             {
               width: panelWidth,
               maxHeight: panelMaxHeight,
+              left: isWide ? 60 : 52,
             },
           ]}
         >
           {/* Panel header */}
-          <View style={styles.panelHeader}>
-            <View style={styles.tabRow}>
+          <View style={s.panelHeader}>
+            <View style={s.tabRow}>
               <Pressable
-                style={[styles.tabButton, !showList && styles.tabButtonActive]}
+                style={[s.tabButton, !showList && s.tabButtonActive]}
                 onPress={() => setShowList(false)}
               >
-                <Text
-                  style={[styles.tabText, !showList && styles.tabTextActive]}
-                >
+                <Text style={[s.tabText, !showList && s.tabTextActive]}>
                   Overview
                 </Text>
               </Pressable>
               <Pressable
-                style={[styles.tabButton, showList && styles.tabButtonActive]}
+                style={[s.tabButton, showList && s.tabButtonActive]}
                 onPress={() => setShowList(true)}
               >
-                <Text
-                  style={[styles.tabText, showList && styles.tabTextActive]}
-                >
+                <Text style={[s.tabText, showList && s.tabTextActive]}>
                   All States
                 </Text>
               </Pressable>
             </View>
             <Pressable
               onPress={() => setPanelOpen(false)}
-              style={styles.closePanelButton}
+              style={s.closePanelButton}
             >
-              <Text style={styles.closePanelText}>✕</Text>
+              <Text style={s.closePanelText}>✕</Text>
             </Pressable>
           </View>
 
           {/* Selection bar */}
           {selectedState && (
-            <View style={styles.selectionBar}>
-              <Text style={styles.selectionText}>
+            <View style={s.selectionBar}>
+              <Text style={s.selectionText}>
                 {codeToStateName[selectedState]} selected — tap again for
                 details
               </Text>
               <Pressable
                 onPress={handleClearSelection}
-                style={styles.clearButton}
+                style={s.clearButton}
               >
-                <Text style={styles.clearText}>Clear</Text>
+                <Text style={s.clearText}>Clear</Text>
               </Pressable>
             </View>
           )}
 
           {/* Panel content */}
           <ScrollView
-            style={styles.scrollArea}
+            style={s.scrollArea}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={s.scrollContent}
           >
             {!showList ? (
               <View>
-                <View style={styles.statsGrid}>
-                  <View style={styles.statBox}>
-                    <Text style={styles.statBoxValue}>
-                      {allStates.filter((s) => s.permitlessCarry).length}
+                <View style={s.statsGrid}>
+                  <View style={s.statBox}>
+                    <Text style={s.statBoxValue}>
+                      {allStates.filter((st) => st.permitlessCarry).length}
                     </Text>
-                    <Text style={styles.statBoxLabel}>Permitless Carry</Text>
+                    <Text style={s.statBoxLabel}>Permitless Carry</Text>
                   </View>
-                  <View style={styles.statBox}>
-                    <Text style={styles.statBoxValue}>
+                  <View style={s.statBox}>
+                    <Text style={s.statBoxValue}>
                       {
                         allStates.filter(
-                          (s) => s.permitType === 'shall-issue'
+                          (st) => st.permitType === 'shall-issue'
                         ).length
                       }
                     </Text>
-                    <Text style={styles.statBoxLabel}>Shall-Issue</Text>
+                    <Text style={s.statBoxLabel}>Shall-Issue</Text>
                   </View>
-                  <View style={styles.statBox}>
-                    <Text style={styles.statBoxValue}>
+                  <View style={s.statBox}>
+                    <Text style={s.statBoxValue}>
                       {
-                        allStates.filter((s) => s.permitType === 'may-issue')
-                          .length
+                        allStates.filter(
+                          (st) => st.permitType === 'may-issue'
+                        ).length
                       }
                     </Text>
-                    <Text style={styles.statBoxLabel}>May-Issue</Text>
+                    <Text style={s.statBoxLabel}>May-Issue</Text>
                   </View>
-                  <View style={styles.statBox}>
-                    <Text style={styles.statBoxValue}>
-                      {allStates.filter((s) => s.redFlagLaw).length}
+                  <View style={s.statBox}>
+                    <Text style={s.statBoxValue}>
+                      {allStates.filter((st) => st.redFlagLaw).length}
                     </Text>
-                    <Text style={styles.statBoxLabel}>Red Flag Laws</Text>
+                    <Text style={s.statBoxLabel}>Red Flag Laws</Text>
                   </View>
                 </View>
 
-                <Text style={styles.instructionText}>
+                <Text style={s.instructionText}>
                   Tap a state on the map to see reciprocity. Tap again to view
                   full details and laws.
                 </Text>
@@ -188,174 +192,252 @@ export default function MapScreen() {
       )}
 
       {/* Reopen panel button when closed */}
-      {!panelOpen && (
+      {!panelOpen && !menuOpen && (
         <Pressable
-          style={styles.openPanelButton}
+          style={[s.openPanelButton, { left: isWide ? 60 : 52 }]}
           onPress={() => setPanelOpen(true)}
         >
-          <Text style={styles.openPanelIcon}>☰</Text>
+          <Text style={s.openPanelIcon}>☰</Text>
         </Pressable>
+      )}
+
+      {/* Left nav rail / hamburger */}
+      <View style={s.navRail}>
+        <Pressable
+          style={[s.navRailButton, menuOpen && s.navRailButtonActive]}
+          onPress={() => setMenuOpen(!menuOpen)}
+        >
+          <Text style={s.navRailIcon}>{menuOpen ? '✕' : '☰'}</Text>
+        </Pressable>
+      </View>
+
+      {/* Nav menu overlay */}
+      {menuOpen && (
+        <>
+          <Pressable style={s.menuBackdrop} onPress={() => setMenuOpen(false)} />
+          <View style={[s.menuContainer, { width: menuWidth, left: isWide ? 48 : 44 }]}>
+            <NavMenu onClose={() => setMenuOpen(false)} />
+          </View>
+        </>
       )}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  mapContainer: {
-    ...StyleSheet.absoluteFillObject,
-  },
+function makeStyles(theme: Theme) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    mapContainer: {
+      ...StyleSheet.absoluteFillObject,
+    },
 
-  // Floating panel
-  floatingPanel: {
-    position: 'absolute',
-    top: 12,
-    left: 12,
-    bottom: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    overflow: 'hidden',
-    // Shadow
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  panelHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  tabRow: {
-    flex: 1,
-    flexDirection: 'row',
-  },
-  tabButton: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  tabButtonActive: {
-    borderBottomWidth: 2,
-    borderBottomColor: Colors.primary,
-  },
-  tabText: {
-    color: Colors.textMuted,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  tabTextActive: {
-    color: Colors.primary,
-  },
-  closePanelButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  closePanelText: {
-    color: Colors.textMuted,
-    fontSize: 16,
-    fontWeight: '600',
-  },
+    // Left nav rail
+    navRail: {
+      position: 'absolute',
+      top: 12,
+      left: 8,
+      zIndex: 20,
+    },
+    navRailButton: {
+      backgroundColor: theme.overlayStrong,
+      borderRadius: 8,
+      width: 36,
+      height: 36,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: theme.border,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.15,
+      shadowRadius: 6,
+      elevation: 3,
+    },
+    navRailButtonActive: {
+      backgroundColor: theme.accent,
+      borderColor: theme.accent,
+    },
+    navRailIcon: {
+      color: theme.text,
+      fontSize: 16,
+    },
 
-  selectionBar: {
-    backgroundColor: 'rgba(74, 144, 217, 0.1)',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  selectionText: {
-    color: '#1a1a1a',
-    fontSize: 12,
-    fontWeight: '600',
-    flex: 1,
-  },
-  clearButton: {
-    backgroundColor: 'rgba(0,0,0,0.08)',
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    marginLeft: 8,
-  },
-  clearText: {
-    color: '#333333',
-    fontSize: 11,
-    fontWeight: '600',
-  },
+    // Nav menu
+    menuBackdrop: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0,0,0,0.3)',
+      zIndex: 15,
+    },
+    menuContainer: {
+      position: 'absolute',
+      top: 12,
+      bottom: 12,
+      borderRadius: 12,
+      overflow: 'hidden',
+      zIndex: 16,
+      borderWidth: 1,
+      borderColor: theme.border,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.2,
+      shadowRadius: 10,
+      elevation: 6,
+    },
 
-  scrollArea: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 14,
-  },
+    // Floating panel
+    floatingPanel: {
+      position: 'absolute',
+      top: 12,
+      bottom: 12,
+      backgroundColor: theme.overlayStrong,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: theme.border,
+      overflow: 'hidden',
+      zIndex: 10,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.15,
+      shadowRadius: 8,
+      elevation: 5,
+    },
+    panelHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+    },
+    tabRow: {
+      flex: 1,
+      flexDirection: 'row',
+    },
+    tabButton: {
+      flex: 1,
+      paddingVertical: 12,
+      alignItems: 'center',
+    },
+    tabButtonActive: {
+      borderBottomWidth: 2,
+      borderBottomColor: theme.primary,
+    },
+    tabText: {
+      color: theme.textMuted,
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    tabTextActive: {
+      color: theme.primary,
+    },
+    closePanelButton: {
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+    },
+    closePanelText: {
+      color: theme.textMuted,
+      fontSize: 16,
+      fontWeight: '600',
+    },
 
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginHorizontal: -3,
-    marginBottom: 14,
-  },
-  statBox: {
-    flex: 1,
-    minWidth: '44%',
-    margin: 3,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    borderRadius: 8,
-    padding: 12,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  statBoxValue: {
-    color: Colors.text,
-    fontSize: 24,
-    fontWeight: '800',
-  },
-  statBoxLabel: {
-    color: Colors.textMuted,
-    fontSize: 10,
-    marginTop: 3,
-    textAlign: 'center',
-  },
-  instructionText: {
-    color: Colors.textSecondary,
-    fontSize: 12,
-    textAlign: 'center',
-    lineHeight: 18,
-  },
+    selectionBar: {
+      backgroundColor: theme.name === 'dark'
+        ? 'rgba(92, 159, 219, 0.15)'
+        : 'rgba(74, 144, 217, 0.1)',
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    selectionText: {
+      color: theme.text,
+      fontSize: 12,
+      fontWeight: '600',
+      flex: 1,
+    },
+    clearButton: {
+      backgroundColor: theme.name === 'dark'
+        ? 'rgba(255,255,255,0.1)'
+        : 'rgba(0,0,0,0.08)',
+      borderRadius: 6,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      marginLeft: 8,
+    },
+    clearText: {
+      color: theme.textSecondary,
+      fontSize: 11,
+      fontWeight: '600',
+    },
 
-  // Reopen button
-  openPanelButton: {
-    position: 'absolute',
-    top: 12,
-    left: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 8,
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  openPanelIcon: {
-    color: Colors.text,
-    fontSize: 18,
-  },
-});
+    scrollArea: {
+      flex: 1,
+    },
+    scrollContent: {
+      padding: 14,
+    },
+
+    statsGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      marginHorizontal: -3,
+      marginBottom: 14,
+    },
+    statBox: {
+      flex: 1,
+      minWidth: '44%',
+      margin: 3,
+      backgroundColor: theme.surface,
+      borderRadius: 8,
+      padding: 12,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    statBoxValue: {
+      color: theme.text,
+      fontSize: 24,
+      fontWeight: '800',
+    },
+    statBoxLabel: {
+      color: theme.textMuted,
+      fontSize: 10,
+      marginTop: 3,
+      textAlign: 'center',
+    },
+    instructionText: {
+      color: theme.textSecondary,
+      fontSize: 12,
+      textAlign: 'center',
+      lineHeight: 18,
+    },
+
+    // Reopen button
+    openPanelButton: {
+      position: 'absolute',
+      top: 12,
+      backgroundColor: theme.overlayStrong,
+      borderRadius: 8,
+      width: 40,
+      height: 40,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: theme.border,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.15,
+      shadowRadius: 6,
+      elevation: 3,
+      zIndex: 10,
+    },
+    openPanelIcon: {
+      color: theme.text,
+      fontSize: 18,
+    },
+  });
+}

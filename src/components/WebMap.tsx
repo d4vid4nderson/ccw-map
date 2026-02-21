@@ -9,7 +9,7 @@ import { Theme } from '../constants/colors';
 
 interface WebMapProps {
   selectedState: string | null;
-  onStatePress: (stateCode: string) => void;
+  onStatePress: (stateCode: string, shiftKey: boolean) => void;
   getStateColor: (stateCode: string) => string;
 }
 
@@ -134,12 +134,13 @@ export function WebMap({ selectedState, onStatePress, getStateColor }: WebMapPro
             mapInstance.getCanvas().style.cursor = '';
           });
 
-          // Click handler
+          // Click handler — detect shift key for compare mode
           mapInstance.on('click', 'state-fills', (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.GeoJSONFeature[] }) => {
             if (e.features && e.features.length > 0) {
               const stateCode = e.features[0].properties?.stateCode;
               if (stateCode) {
-                onStatePress(stateCode);
+                const shiftKey = (e.originalEvent as MouseEvent)?.shiftKey ?? false;
+                onStatePress(stateCode, shiftKey);
               }
             }
           });

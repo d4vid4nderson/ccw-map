@@ -2,16 +2,24 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Switch, ScrollView } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { Theme } from '../constants/colors';
+import { getAllStates } from '../data/stateLaws';
+import { codeToStateName } from '../hooks/useMapbox';
 
 interface NavMenuProps {
   onClose: () => void;
-  onShowPanel?: () => void;
+  onShowMap?: () => void;
+  onShowStates?: () => void;
 }
 
-export function NavMenu({ onClose, onShowPanel }: NavMenuProps) {
-  const { theme, themeName, setTheme, toggleTheme } = useTheme();
+export function NavMenu({ onClose, onShowMap, onShowStates }: NavMenuProps) {
+  const { theme, themeName, setTheme, toggleTheme, homeState, setHomeState } = useTheme();
   const [activeSection, setActiveSection] = useState<'nav' | 'settings'>('nav');
+  const [statePickerOpen, setStatePickerOpen] = useState(false);
   const s = makeStyles(theme);
+
+  const allStates = getAllStates().sort((a, b) =>
+    a.stateName.localeCompare(b.stateName)
+  );
 
   return (
     <View style={s.container}>
@@ -40,7 +48,7 @@ export function NavMenu({ onClose, onShowPanel }: NavMenuProps) {
             <Pressable
               style={s.navItem}
               onPress={() => {
-                if (onShowPanel) onShowPanel();
+                if (onShowMap) onShowMap();
                 else onClose();
               }}
             >
@@ -53,11 +61,11 @@ export function NavMenu({ onClose, onShowPanel }: NavMenuProps) {
               </View>
             </Pressable>
 
-            {/* All States */}
+            {/* States */}
             <Pressable
               style={s.navItem}
               onPress={() => {
-                if (onShowPanel) onShowPanel();
+                if (onShowStates) onShowStates();
                 else onClose();
               }}
             >
@@ -91,13 +99,91 @@ export function NavMenu({ onClose, onShowPanel }: NavMenuProps) {
           {/* Settings back button */}
           <Pressable
             style={s.backButton}
-            onPress={() => setActiveSection('nav')}
+            onPress={() => {
+              setActiveSection('nav');
+              setStatePickerOpen(false);
+            }}
           >
             <Text style={s.backArrow}>‹</Text>
             <Text style={s.backLabel}>Settings</Text>
           </Pressable>
 
           <View style={s.divider} />
+
+          {/* Home State section */}
+          <View style={s.settingsGroup}>
+            <Text style={s.settingsGroupTitle}>General</Text>
+
+            <View style={s.settingRowColumn}>
+              <View style={s.settingInfo}>
+                <Text style={s.settingLabel}>Home State</Text>
+                <Text style={s.settingDesc}>
+                  Your state for reciprocity lookups
+                </Text>
+              </View>
+              <Pressable
+                style={s.dropdown}
+                onPress={() => setStatePickerOpen(!statePickerOpen)}
+              >
+                <Text style={s.dropdownText}>
+                  {homeState ? codeToStateName[homeState] : 'Select a state'}
+                </Text>
+                <Text style={s.dropdownArrow}>
+                  {statePickerOpen ? '▾' : '▸'}
+                </Text>
+              </Pressable>
+            </View>
+
+            {statePickerOpen && (
+              <View style={s.pickerList}>
+                {/* None option */}
+                <Pressable
+                  style={[
+                    s.pickerItem,
+                    !homeState && s.pickerItemActive,
+                  ]}
+                  onPress={() => {
+                    setHomeState(null);
+                    setStatePickerOpen(false);
+                  }}
+                >
+                  <Text
+                    style={[
+                      s.pickerItemText,
+                      !homeState && s.pickerItemTextActive,
+                    ]}
+                  >
+                    None
+                  </Text>
+                </Pressable>
+                {allStates.map((state) => (
+                  <Pressable
+                    key={state.stateCode}
+                    style={[
+                      s.pickerItem,
+                      homeState === state.stateCode && s.pickerItemActive,
+                    ]}
+                    onPress={() => {
+                      setHomeState(state.stateCode);
+                      setStatePickerOpen(false);
+                    }}
+                  >
+                    <Text
+                      style={[
+                        s.pickerItemText,
+                        homeState === state.stateCode && s.pickerItemTextActive,
+                      ]}
+                    >
+                      {state.stateName}
+                    </Text>
+                    <Text style={s.pickerItemCode}>{state.stateCode}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            )}
+          </View>
+
+          <View style={s.dividerFull} />
 
           {/* Appearance section */}
           <View style={s.settingsGroup}>
@@ -247,6 +333,12 @@ function makeStyles(theme: Theme) {
       backgroundColor: theme.border,
       marginHorizontal: 20,
     },
+    dividerFull: {
+      height: 1,
+      backgroundColor: theme.border,
+      marginHorizontal: 20,
+      marginTop: 16,
+    },
 
     // Nav section
     scrollArea: {
@@ -338,6 +430,9 @@ function makeStyles(theme: Theme) {
       borderBottomWidth: 1,
       borderBottomColor: theme.border,
     },
+    settingRowColumn: {
+      paddingVertical: 4,
+    },
     settingInfo: {
       flex: 1,
     },
@@ -359,6 +454,67 @@ function makeStyles(theme: Theme) {
       letterSpacing: 0.8,
       marginTop: 24,
       marginBottom: 12,
+    },
+
+    // Dropdown
+    dropdown: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: theme.surfaceLight,
+      borderRadius: 8,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      marginTop: 10,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    dropdownText: {
+      color: theme.text,
+      fontSize: 14,
+      fontWeight: '500',
+    },
+    dropdownArrow: {
+      color: theme.textMuted,
+      fontSize: 12,
+    },
+
+    // State picker list
+    pickerList: {
+      marginTop: 8,
+      backgroundColor: theme.surfaceLight,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: theme.border,
+      maxHeight: 240,
+      overflow: 'hidden',
+    },
+    pickerItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 14,
+      paddingVertical: 11,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+    },
+    pickerItemActive: {
+      backgroundColor: theme.name === 'dark'
+        ? 'rgba(233, 69, 96, 0.15)'
+        : 'rgba(233, 69, 96, 0.08)',
+    },
+    pickerItemText: {
+      color: theme.text,
+      fontSize: 14,
+    },
+    pickerItemTextActive: {
+      color: theme.accent,
+      fontWeight: '600',
+    },
+    pickerItemCode: {
+      color: theme.textMuted,
+      fontSize: 12,
+      fontWeight: '600',
     },
 
     // Theme picker cards

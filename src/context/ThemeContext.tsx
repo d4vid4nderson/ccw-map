@@ -6,6 +6,8 @@ interface ThemeContextValue {
   themeName: ThemeName;
   setTheme: (name: ThemeName) => void;
   toggleTheme: () => void;
+  homeState: string | null;
+  setHomeState: (code: string | null) => void;
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
@@ -13,10 +15,13 @@ const ThemeContext = createContext<ThemeContextValue>({
   themeName: 'light',
   setTheme: () => {},
   toggleTheme: () => {},
+  homeState: null,
+  setHomeState: () => {},
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [themeName, setThemeName] = useState<ThemeName>('light');
+  const [homeState, setHomeState] = useState<string | null>(null);
 
   const setTheme = useCallback((name: ThemeName) => {
     setThemeName(name);
@@ -32,8 +37,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       themeName,
       setTheme,
       toggleTheme,
+      homeState,
+      setHomeState,
     }),
-    [themeName, setTheme, toggleTheme]
+    [themeName, setTheme, toggleTheme, homeState]
   );
 
   return (

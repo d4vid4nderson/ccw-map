@@ -16,6 +16,8 @@ interface WebMapProps {
 export function WebMap({ selectedState, onStatePress, getStateColor }: WebMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const onStatePressRef = useRef(onStatePress);
+  onStatePressRef.current = onStatePress;
   const [error, setError] = useState<string | null>(null);
   const { theme } = useTheme();
 
@@ -140,7 +142,7 @@ export function WebMap({ selectedState, onStatePress, getStateColor }: WebMapPro
               const stateCode = e.features[0].properties?.stateCode;
               if (stateCode) {
                 const shiftKey = (e.originalEvent as MouseEvent)?.shiftKey ?? false;
-                onStatePress(stateCode, shiftKey);
+                onStatePressRef.current(stateCode, shiftKey);
               }
             }
           });

@@ -6,11 +6,14 @@ import { useTheme } from '../context/ThemeContext';
 
 export function useReciprocityMap() {
   const [selectedState, setSelectedState] = useState<string | null>(null);
-  const { theme } = useTheme();
+  const { theme, homeState } = useTheme();
+
+  // Use selectedState if set, otherwise fall back to homeState
+  const activeState = selectedState ?? homeState;
 
   const getStateColor = useCallback(
     (stateCode: string): string => {
-      if (!selectedState) {
+      if (!activeState) {
         // No state selected: color by permit type
         const law = stateLaws[stateCode];
         if (!law) return theme.map.fallback;
@@ -30,8 +33,8 @@ export function useReciprocityMap() {
         }
       }
 
-      // State selected: show reciprocity
-      const status = getReciprocityStatus(selectedState, stateCode);
+      // State selected (or home state): show reciprocity
+      const status = getReciprocityStatus(activeState, stateCode);
       switch (status) {
         case 'home':
           return theme.reciprocity.home;
@@ -47,7 +50,7 @@ export function useReciprocityMap() {
           return theme.map.fallback;
       }
     },
-    [selectedState, theme]
+    [activeState, theme]
   );
 
   const selectState = useCallback((stateCode: string | null) => {
@@ -56,6 +59,7 @@ export function useReciprocityMap() {
 
   return {
     selectedState,
+    activeState,
     selectState,
     getStateColor,
   };

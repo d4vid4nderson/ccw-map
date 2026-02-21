@@ -23,7 +23,7 @@ export default function MapScreen() {
   const { width, height } = useWindowDimensions();
   const { theme, homeState } = useTheme();
   const isWide = width > 768;
-  const { selectedState, selectState, getStateColor } = useReciprocityMap();
+  const { selectedState, activeState, selectState, getStateColor } = useReciprocityMap();
   const [showList, setShowList] = useState(false);
   const [panelOpen, setPanelOpen] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -125,7 +125,7 @@ export default function MapScreen() {
           onStatePress={handleStatePress}
           getStateColor={getStateColor}
         />
-        <MapLegend selectedState={selectedState} />
+        <MapLegend activeState={activeState} />
       </View>
 
       {/* Floating info panel */}

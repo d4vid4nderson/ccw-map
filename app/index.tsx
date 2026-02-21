@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,27 @@ import { WebMap } from '../src/components/WebMap';
 import { NavMenu } from '../src/components/NavMenu';
 import { StateComparison } from '../src/components/StateComparison';
 
+export type KpiFilter = 'permitless' | 'shall-issue' | 'may-issue' | 'red-flag' | null;
+
+const KPI_LABELS: Record<string, string> = {
+  'permitless': 'Permitless Carry',
+  'shall-issue': 'Shall-Issue',
+  'may-issue': 'May-Issue',
+  'red-flag': 'Red Flag Laws',
+};
+
+function stateMatchesKpi(stateCode: string, filter: KpiFilter): boolean {
+  const law = stateLaws[stateCode];
+  if (!law) return false;
+  switch (filter) {
+    case 'permitless': return law.permitlessCarry;
+    case 'shall-issue': return law.permitType === 'shall-issue';
+    case 'may-issue': return law.permitType === 'may-issue';
+    case 'red-flag': return law.redFlagLaw;
+    default: return false;
+  }
+}
+
 export default function MapScreen() {
   const router = useRouter();
   const { width, height } = useWindowDimensions();
@@ -33,11 +54,47 @@ export default function MapScreen() {
   const [compareStateA, setCompareStateA] = useState<string | null>(null);
   const [compareStateB, setCompareStateB] = useState<string | null>(null);
 
+  // KPI filter mode
+  const [kpiFilter, setKpiFilter] = useState<KpiFilter>(null);
+
   const exitCompareMode = useCallback(() => {
     setCompareMode(false);
     setCompareStateA(null);
     setCompareStateB(null);
   }, []);
+
+  // Wrapped color function: compare states and KPI filter take priority
+  const getMapStateColor = useCallback(
+    (stateCode: string): string => {
+      // Compare mode: highlight compared states
+      if (compareMode && compareStateA && compareStateB) {
+        if (stateCode === compareStateA) return theme.compare.stateA;
+        if (stateCode === compareStateB) return theme.compare.stateB;
+        return theme.reciprocity.default;
+      }
+      // KPI filter mode: highlight matching states
+      if (kpiFilter) {
+        if (stateMatchesKpi(stateCode, kpiFilter)) {
+          switch (kpiFilter) {
+            case 'permitless': return theme.reciprocity.permitless;
+            case 'shall-issue': return theme.permitType['shall-issue'];
+            case 'may-issue': return theme.permitType['may-issue'];
+            case 'red-flag': return theme.warning;
+          }
+        }
+        return theme.reciprocity.default;
+      }
+      // Default: use reciprocity/permit coloring
+      return getStateColor(stateCode);
+    },
+    [compareMode, compareStateA, compareStateB, kpiFilter, getStateColor, theme]
+  );
+
+  const handleKpiPress = useCallback((filter: KpiFilter) => {
+    exitCompareMode();
+    selectState(null);
+    setKpiFilter(prev => prev === filter ? null : filter);
+  }, [exitCompareMode, selectState]);
 
   const handleStatePress = useCallback(
     (stateCode: string, shiftKey: boolean = false) => {
@@ -62,6 +119,7 @@ export default function MapScreen() {
         router.push(`/state/${stateCode}`);
       } else {
         exitCompareMode();
+        setKpiFilter(null);
         selectState(stateCode);
         setPanelOpen(true);
       }
@@ -77,6 +135,7 @@ export default function MapScreen() {
   // Mobile compare: user taps "Compare" button, enters waiting-for-second-state mode
   const handleStartCompare = useCallback(() => {
     if (selectedState) {
+      setKpiFilter(null);
       setCompareStateA(selectedState);
       setCompareStateB(null);
       setCompareMode(true);
@@ -87,6 +146,7 @@ export default function MapScreen() {
     setMenuOpen(false);
     setPanelOpen(true);
     setShowList(false);
+    setKpiFilter(null);
     exitCompareMode();
     if (homeState) {
       selectState(homeState);
@@ -97,6 +157,7 @@ export default function MapScreen() {
     setMenuOpen(false);
     setPanelOpen(true);
     setShowList(true);
+    setKpiFilter(null);
     exitCompareMode();
   }, [exitCompareMode]);
 
@@ -123,9 +184,15 @@ export default function MapScreen() {
         <WebMap
           selectedState={selectedState}
           onStatePress={handleStatePress}
-          getStateColor={getStateColor}
+          getStateColor={getMapStateColor}
         />
-        <MapLegend activeState={activeState} />
+        <MapLegend
+          activeState={activeState}
+          compareMode={!!(compareMode && compareStateA && compareStateB)}
+          compareStateA={compareStateA}
+          compareStateB={compareStateB}
+          kpiFilter={kpiFilter}
+        />
       </View>
 
       {/* Floating info panel */}
@@ -235,38 +302,50 @@ export default function MapScreen() {
               {!showList ? (
                 <View>
                   <View style={s.statsGrid}>
-                    <View style={s.statBox}>
-                      <Text style={s.statBoxValue}>
+                    <Pressable
+                      style={[s.statBox, kpiFilter === 'permitless' && s.statBoxActive]}
+                      onPress={() => handleKpiPress('permitless')}
+                    >
+                      <Text style={[s.statBoxValue, kpiFilter === 'permitless' && s.statBoxValueActive]}>
                         {allStates.filter((st) => st.permitlessCarry).length}
                       </Text>
-                      <Text style={s.statBoxLabel}>Permitless Carry</Text>
-                    </View>
-                    <View style={s.statBox}>
-                      <Text style={s.statBoxValue}>
+                      <Text style={[s.statBoxLabel, kpiFilter === 'permitless' && s.statBoxLabelActive]}>Permitless Carry</Text>
+                    </Pressable>
+                    <Pressable
+                      style={[s.statBox, kpiFilter === 'shall-issue' && s.statBoxActive]}
+                      onPress={() => handleKpiPress('shall-issue')}
+                    >
+                      <Text style={[s.statBoxValue, kpiFilter === 'shall-issue' && s.statBoxValueActive]}>
                         {
                           allStates.filter(
                             (st) => st.permitType === 'shall-issue'
                           ).length
                         }
                       </Text>
-                      <Text style={s.statBoxLabel}>Shall-Issue</Text>
-                    </View>
-                    <View style={s.statBox}>
-                      <Text style={s.statBoxValue}>
+                      <Text style={[s.statBoxLabel, kpiFilter === 'shall-issue' && s.statBoxLabelActive]}>Shall-Issue</Text>
+                    </Pressable>
+                    <Pressable
+                      style={[s.statBox, kpiFilter === 'may-issue' && s.statBoxActive]}
+                      onPress={() => handleKpiPress('may-issue')}
+                    >
+                      <Text style={[s.statBoxValue, kpiFilter === 'may-issue' && s.statBoxValueActive]}>
                         {
                           allStates.filter(
                             (st) => st.permitType === 'may-issue'
                           ).length
                         }
                       </Text>
-                      <Text style={s.statBoxLabel}>May-Issue</Text>
-                    </View>
-                    <View style={s.statBox}>
-                      <Text style={s.statBoxValue}>
+                      <Text style={[s.statBoxLabel, kpiFilter === 'may-issue' && s.statBoxLabelActive]}>May-Issue</Text>
+                    </Pressable>
+                    <Pressable
+                      style={[s.statBox, kpiFilter === 'red-flag' && s.statBoxActive]}
+                      onPress={() => handleKpiPress('red-flag')}
+                    >
+                      <Text style={[s.statBoxValue, kpiFilter === 'red-flag' && s.statBoxValueActive]}>
                         {allStates.filter((st) => st.redFlagLaw).length}
                       </Text>
-                      <Text style={s.statBoxLabel}>Red Flag Laws</Text>
-                    </View>
+                      <Text style={[s.statBoxLabel, kpiFilter === 'red-flag' && s.statBoxLabelActive]}>Red Flag Laws</Text>
+                    </Pressable>
                   </View>
 
                   <Text style={s.instructionText}>
@@ -503,16 +582,30 @@ function makeStyles(theme: Theme) {
       borderWidth: 1,
       borderColor: theme.border,
     },
+    statBoxActive: {
+      borderColor: theme.primary,
+      borderWidth: 2,
+      backgroundColor: theme.name === 'dark' || theme.name === 'multicam' || theme.name === 'multicam-black' || theme.name === 'multicam-tropic'
+        ? 'rgba(255,255,255,0.08)'
+        : 'rgba(0,0,0,0.05)',
+    },
     statBoxValue: {
       color: theme.text,
       fontSize: 24,
       fontWeight: '800',
+    },
+    statBoxValueActive: {
+      color: theme.primary,
     },
     statBoxLabel: {
       color: theme.textMuted,
       fontSize: 10,
       marginTop: 3,
       textAlign: 'center',
+    },
+    statBoxLabelActive: {
+      color: theme.text,
+      fontWeight: '700',
     },
     instructionText: {
       color: theme.textSecondary,

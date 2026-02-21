@@ -32,6 +32,10 @@ export interface Theme {
     'may-issue': string;
     'no-issue': string;
   };
+  compare: {
+    stateA: string;
+    stateB: string;
+  };
   map: {
     borderColor: string;
     borderOpacity: number;
@@ -90,6 +94,10 @@ export const lightTheme: Theme = {
     'may-issue': '#ff9800',
     'no-issue': '#f44336',
   },
+  compare: {
+    stateA: '#4a90d9',
+    stateB: '#e94560',
+  },
   map: {
     borderColor: '#ffffff',
     borderOpacity: 0.4,
@@ -128,6 +136,10 @@ export const darkTheme: Theme = {
     'shall-issue': '#66bb6a',
     'may-issue': '#ffa726',
     'no-issue': '#ef5350',
+  },
+  compare: {
+    stateA: '#5c9fdb',
+    stateB: '#e94560',
   },
   map: {
     borderColor: '#555555',
@@ -170,6 +182,10 @@ export const multicamTheme: Theme = {
     'may-issue': '#c4a23a',
     'no-issue': '#b85c3a',
   },
+  compare: {
+    stateA: '#5a8ab5',
+    stateB: '#c05a4a',
+  },
   map: {
     borderColor: '#8a7f6a',
     borderOpacity: 0.4,
@@ -210,6 +226,10 @@ export const multicamBlackTheme: Theme = {
     'shall-issue': '#5a8a5a',
     'may-issue': '#b0903a',
     'no-issue': '#a04040',
+  },
+  compare: {
+    stateA: '#4a7aaa',
+    stateB: '#a04a4a',
   },
   map: {
     borderColor: '#4a4a44',
@@ -252,6 +272,10 @@ export const multicamAridTheme: Theme = {
     'may-issue': '#c49030',
     'no-issue': '#a84a2a',
   },
+  compare: {
+    stateA: '#3a7aca',
+    stateB: '#b04a3a',
+  },
   map: {
     borderColor: '#b3a08a',
     borderOpacity: 0.5,
@@ -293,6 +317,10 @@ export const multicamTropicTheme: Theme = {
     'may-issue': '#b8a030',
     'no-issue': '#b84a3a',
   },
+  compare: {
+    stateA: '#4a8aba',
+    stateB: '#c04a3a',
+  },
   map: {
     borderColor: '#6a6e54',
     borderOpacity: 0.4,
@@ -333,6 +361,10 @@ export const multicamAlpineTheme: Theme = {
     'shall-issue': '#5a9a6a',
     'may-issue': '#b89a40',
     'no-issue': '#a05050',
+  },
+  compare: {
+    stateA: '#5a8ab5',
+    stateB: '#a05060',
   },
   map: {
     borderColor: '#b0b2b8',

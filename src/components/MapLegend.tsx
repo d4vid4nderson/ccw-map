@@ -9,10 +9,10 @@ interface LegendItem {
 }
 
 interface MapLegendProps {
-  selectedState: string | null;
+  activeState: string | null;
 }
 
-export function MapLegend({ selectedState }: MapLegendProps) {
+export function MapLegend({ activeState }: MapLegendProps) {
   const { theme } = useTheme();
 
   const defaultLegend: LegendItem[] = [
@@ -29,13 +29,13 @@ export function MapLegend({ selectedState }: MapLegendProps) {
     { color: theme.reciprocity.none, label: 'No Reciprocity' },
   ];
 
-  const items = selectedState ? reciprocityLegend : defaultLegend;
+  const items = activeState ? reciprocityLegend : defaultLegend;
   const s = makeStyles(theme);
 
   return (
     <View style={s.container}>
       <Text style={s.title}>
-        {selectedState ? 'Reciprocity' : 'Permit Type'}
+        {activeState ? 'Reciprocity' : 'Permit Type'}
       </Text>
       {items.map((item) => (
         <View key={item.label} style={s.row}>

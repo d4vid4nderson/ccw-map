@@ -1,11 +1,46 @@
 import React, { useEffect, useRef, useCallback, useState } from 'react';
-import { View, Text, StyleSheet, Platform, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { MAPBOX_ACCESS_TOKEN, US_CENTER, US_ZOOM, US_STATES_GEOJSON_URL } from '../constants/mapbox';
 import { stateNameToCode } from '../hooks/useMapbox';
 import { useTheme } from '../context/ThemeContext';
 import { Theme } from '../constants/colors';
+
+// Custom Mapbox control that recenters the map to the default US view
+class RecenterControl implements mapboxgl.IControl {
+  private _container: HTMLDivElement | null = null;
+  private _map: mapboxgl.Map | null = null;
+
+  onAdd(map: mapboxgl.Map): HTMLElement {
+    this._map = map;
+    this._container = document.createElement('div');
+    this._container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group';
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.title = 'Reset view';
+    button.setAttribute('aria-label', 'Reset view');
+    button.innerHTML = `<svg viewBox="0 0 20 20" width="20" height="20" fill="currentColor">
+      <path d="M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14zm0 1.5a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm0 8a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm-4.5-4a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm9 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2zM10 8a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/>
+    </svg>`;
+    button.addEventListener('click', () => {
+      this._map?.flyTo({
+        center: US_CENTER,
+        zoom: US_ZOOM,
+        duration: 800,
+      });
+    });
+
+    this._container.appendChild(button);
+    return this._container;
+  }
+
+  onRemove(): void {
+    this._container?.parentNode?.removeChild(this._container);
+    this._map = null;
+  }
+}
 
 interface WebMapProps {
   selectedState: string | null;
@@ -70,6 +105,7 @@ export function WebMap({ selectedState, onStatePress, getStateColor }: WebMapPro
       });
 
       mapInstance.addControl(new mapboxgl.NavigationControl(), 'top-right');
+      mapInstance.addControl(new RecenterControl(), 'top-right');
 
       mapInstance.on('load', async () => {
         try {
@@ -173,16 +209,6 @@ export function WebMap({ selectedState, onStatePress, getStateColor }: WebMapPro
     updateColors();
   }, [selectedState, updateColors]);
 
-  const handleRecenter = useCallback(() => {
-    if (map.current) {
-      map.current.flyTo({
-        center: US_CENTER,
-        zoom: US_ZOOM,
-        duration: 800,
-      });
-    }
-  }, []);
-
   const s = makeStyles(theme);
 
   if (Platform.OS !== 'web') {
@@ -200,9 +226,6 @@ export function WebMap({ selectedState, onStatePress, getStateColor }: WebMapPro
   return (
     <View style={s.container}>
       <div ref={mapContainer as any} style={{ width: '100%', height: '100%' }} />
-      <Pressable style={s.recenterButton} onPress={handleRecenter}>
-        <Text style={s.recenterIcon}>⌖</Text>
-      </Pressable>
     </View>
   );
 }
@@ -222,29 +245,6 @@ function makeStyles(theme: Theme) {
       color: theme.warning,
       fontSize: 14,
       textAlign: 'center',
-    },
-    recenterButton: {
-      position: 'absolute',
-      bottom: 24,
-      left: 12,
-      backgroundColor: theme.overlay,
-      borderRadius: 8,
-      width: 36,
-      height: 36,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderWidth: 1,
-      borderColor: theme.border,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.15,
-      shadowRadius: 4,
-      elevation: 3,
-    },
-    recenterIcon: {
-      color: theme.text,
-      fontSize: 20,
-      lineHeight: 22,
     },
   });
 }

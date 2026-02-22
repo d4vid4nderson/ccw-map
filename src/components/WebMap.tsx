@@ -6,8 +6,6 @@ import { MAPBOX_ACCESS_TOKEN, US_CENTER, US_ZOOM, US_STATES_GEOJSON_URL } from '
 import { stateNameToCode } from '../hooks/useMapbox';
 import { useTheme } from '../context/ThemeContext';
 import { Theme } from '../constants/colors';
-import { stateLaws } from '../data/stateLaws';
-import { getReciprocitySummary } from '../data/reciprocity';
 
 // Custom Mapbox control that recenters the map to the default US view
 class RecenterControl implements mapboxgl.IControl {
@@ -23,8 +21,8 @@ class RecenterControl implements mapboxgl.IControl {
     button.type = 'button';
     button.title = 'Reset view';
     button.setAttribute('aria-label', 'Reset view');
-    button.innerHTML = `<svg viewBox="0 0 20 20" width="20" height="20" fill="currentColor">
-      <path d="M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14zm0 1.5a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm0 8a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm-4.5-4a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm9 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2zM10 8a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/>
+    button.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>
     </svg>`;
     button.addEventListener('click', () => {
       this._map?.flyTo({
@@ -44,95 +42,19 @@ class RecenterControl implements mapboxgl.IControl {
   }
 }
 
-function buildPopupHTML(stateCode: string, theme: Theme): string {
-  const law = stateLaws[stateCode];
-  if (!law) return '';
-  const reciprocity = getReciprocitySummary(stateCode);
-
-  const permitLabel =
-    law.permitType === 'unrestricted' ? 'Unrestricted'
-    : law.permitType === 'shall-issue' ? 'Shall-Issue'
-    : law.permitType === 'may-issue' ? 'May-Issue'
-    : 'No-Issue';
-  const permitColor = theme.permitType[law.permitType];
-
-  const isDark = theme.name === 'dark' || theme.name === 'multicam-black';
-
-  return `
-    <div style="
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      min-width: 220px;
-      max-width: 280px;
-    ">
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
-        <div>
-          <div style="font-size:16px; font-weight:700; color:${theme.text};">${law.stateName}</div>
-          <div style="font-size:11px; color:${theme.textSecondary};">${law.stateCode}</div>
-        </div>
-        <div style="
-          background:${permitColor}; color:#fff; font-size:10px; font-weight:700;
-          padding:3px 8px; border-radius:5px; white-space:nowrap;
-        ">${permitLabel}</div>
-      </div>
-      <div style="font-size:12px; color:${theme.textSecondary}; line-height:1.4; margin-bottom:10px;
-        display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
-        ${law.summary}
-      </div>
-      <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-        <div style="text-align:center; flex:1;">
-          <div style="font-size:14px; font-weight:700; color:${theme.text};">${reciprocity.honoredByCount}</div>
-          <div style="font-size:9px; color:${theme.textMuted};">States Honor</div>
-        </div>
-        <div style="text-align:center; flex:1;">
-          <div style="font-size:14px; font-weight:700; color:${theme.text};">${law.permitlessCarry ? 'Yes' : 'No'}</div>
-          <div style="font-size:9px; color:${theme.textMuted};">Permitless</div>
-        </div>
-        <div style="text-align:center; flex:1;">
-          <div style="font-size:14px; font-weight:700; color:${theme.text};">${law.standYourGround ? 'Yes' : 'No'}</div>
-          <div style="font-size:9px; color:${theme.textMuted};">Stand Ground</div>
-        </div>
-        <div style="text-align:center; flex:1;">
-          <div style="font-size:14px; font-weight:700; color:${theme.text};">${law.magazineRestriction ?? 'None'}</div>
-          <div style="font-size:9px; color:${theme.textMuted};">Mag Limit</div>
-        </div>
-      </div>
-      <div style="display:flex; gap:6px;">
-        <button data-action="more" style="
-          flex:1; padding:7px 0; border:none; border-radius:6px; cursor:pointer;
-          background:${theme.primary}; color:#fff; font-size:12px; font-weight:600;
-        ">More</button>
-        <button data-action="compare" style="
-          padding:7px 12px; border:none; border-radius:6px; cursor:pointer;
-          background:${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'};
-          color:${theme.textSecondary}; font-size:12px; font-weight:600;
-        ">Compare</button>
-      </div>
-    </div>
-  `;
-}
-
 interface WebMapProps {
   selectedState: string | null;
   onStatePress: (stateCode: string, shiftKey: boolean) => void;
-  onMore: (stateCode: string) => void;
-  onCompare: (stateCode: string) => void;
   getStateColor: (stateCode: string) => string;
 }
 
-export function WebMap({ selectedState, onStatePress, onMore, onCompare, getStateColor }: WebMapProps) {
+export function WebMap({ selectedState, onStatePress, getStateColor }: WebMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const popup = useRef<mapboxgl.Popup | null>(null);
   const onStatePressRef = useRef(onStatePress);
   onStatePressRef.current = onStatePress;
-  const onMoreRef = useRef(onMore);
-  onMoreRef.current = onMore;
-  const onCompareRef = useRef(onCompare);
-  onCompareRef.current = onCompare;
   const [error, setError] = useState<string | null>(null);
   const { theme } = useTheme();
-  const themeRef = useRef(theme);
-  themeRef.current = theme;
 
   const updateColors = useCallback(() => {
     if (!map.current || !map.current.getSource('states')) return;
@@ -250,61 +172,14 @@ export function WebMap({ selectedState, onStatePress, onMore, onCompare, getStat
             mapInstance.getCanvas().style.cursor = '';
           });
 
-          // Click handler — show popup with state info
+          // Click handler
           mapInstance.on('click', 'state-fills', (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.GeoJSONFeature[] }) => {
             if (e.features && e.features.length > 0) {
               const stateCode = e.features[0].properties?.stateCode;
-              if (!stateCode) return;
-
-              const shiftKey = (e.originalEvent as MouseEvent)?.shiftKey ?? false;
-              onStatePressRef.current(stateCode, shiftKey);
-
-              // Don't show popup for shift-clicks (compare mode)
-              if (shiftKey) return;
-
-              // Remove existing popup
-              if (popup.current) {
-                popup.current.remove();
-                popup.current = null;
+              if (stateCode) {
+                const shiftKey = (e.originalEvent as MouseEvent)?.shiftKey ?? false;
+                onStatePressRef.current(stateCode, shiftKey);
               }
-
-              const currentTheme = themeRef.current;
-              const html = buildPopupHTML(stateCode, currentTheme);
-              if (!html) return;
-
-              const newPopup = new mapboxgl.Popup({
-                closeButton: true,
-                closeOnClick: false,
-                maxWidth: '300px',
-                className: 'state-popup',
-              })
-                .setLngLat(e.lngLat)
-                .setHTML(html)
-                .addTo(mapInstance);
-
-              // Wire up button clicks inside the popup
-              const container = newPopup.getElement();
-              container?.addEventListener('click', (evt) => {
-                const target = evt.target as HTMLElement;
-                const btn = target.closest('button');
-                if (!btn) return;
-                const action = btn.getAttribute('data-action');
-                if (action === 'more') {
-                  newPopup.remove();
-                  popup.current = null;
-                  onMoreRef.current(stateCode);
-                } else if (action === 'compare') {
-                  newPopup.remove();
-                  popup.current = null;
-                  onCompareRef.current(stateCode);
-                }
-              });
-
-              newPopup.on('close', () => {
-                popup.current = null;
-              });
-
-              popup.current = newPopup;
             }
           });
         } catch (err) {
@@ -333,59 +208,6 @@ export function WebMap({ selectedState, onStatePress, onMore, onCompare, getStat
   useEffect(() => {
     updateColors();
   }, [selectedState, updateColors]);
-
-  // Inject popup styles that match the current theme
-  useEffect(() => {
-    const isDark = theme.name === 'dark' || theme.name === 'multicam-black';
-    const styleId = 'state-popup-styles';
-    let styleEl = document.getElementById(styleId) as HTMLStyleElement | null;
-    if (!styleEl) {
-      styleEl = document.createElement('style');
-      styleEl.id = styleId;
-      document.head.appendChild(styleEl);
-    }
-    styleEl.textContent = `
-      .state-popup .mapboxgl-popup-content {
-        background: ${theme.surface};
-        border: 1px solid ${theme.border};
-        border-radius: 10px;
-        padding: 14px;
-        box-shadow: 0 4px 16px rgba(0,0,0,${isDark ? '0.5' : '0.15'});
-      }
-      .state-popup .mapboxgl-popup-tip {
-        border-top-color: ${theme.surface};
-      }
-      .state-popup.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip {
-        border-top-color: ${theme.surface};
-      }
-      .state-popup.mapboxgl-popup-anchor-top .mapboxgl-popup-tip {
-        border-bottom-color: ${theme.surface};
-      }
-      .state-popup.mapboxgl-popup-anchor-left .mapboxgl-popup-tip {
-        border-right-color: ${theme.surface};
-      }
-      .state-popup.mapboxgl-popup-anchor-right .mapboxgl-popup-tip {
-        border-left-color: ${theme.surface};
-      }
-      .state-popup .mapboxgl-popup-close-button {
-        color: ${theme.textMuted};
-        font-size: 18px;
-        padding: 4px 8px;
-      }
-      .state-popup .mapboxgl-popup-close-button:hover {
-        color: ${theme.text};
-        background: transparent;
-      }
-    `;
-  }, [theme]);
-
-  // Close popup when selectedState is cleared externally
-  useEffect(() => {
-    if (!selectedState && popup.current) {
-      popup.current.remove();
-      popup.current = null;
-    }
-  }, [selectedState]);
 
   const s = makeStyles(theme);
 

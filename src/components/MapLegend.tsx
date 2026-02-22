@@ -3,7 +3,6 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { Theme } from '../constants/colors';
 import { codeToStateName } from '../hooks/useMapbox';
-import type { KpiFilter } from '../../app/index';
 
 interface LegendItem {
   color: string;
@@ -15,17 +14,9 @@ interface MapLegendProps {
   compareMode?: boolean;
   compareStateA?: string | null;
   compareStateB?: string | null;
-  kpiFilter?: KpiFilter;
 }
 
-const KPI_LEGEND_LABELS: Record<string, string> = {
-  'permitless': 'Permitless Carry',
-  'shall-issue': 'Shall-Issue',
-  'may-issue': 'May-Issue',
-  'red-flag': 'Red Flag Law',
-};
-
-export function MapLegend({ activeState, compareMode, compareStateA, compareStateB, kpiFilter }: MapLegendProps) {
+export function MapLegend({ activeState, compareMode, compareStateA, compareStateB }: MapLegendProps) {
   const { theme } = useTheme();
   const s = makeStyles(theme);
 
@@ -40,29 +31,6 @@ export function MapLegend({ activeState, compareMode, compareStateA, compareStat
       <View style={s.container}>
         <Text style={s.title}>Comparing</Text>
         {compareLegend.map((item) => (
-          <View key={item.label} style={s.row}>
-            <View style={[s.colorBox, { backgroundColor: item.color }]} />
-            <Text style={s.label}>{item.label}</Text>
-          </View>
-        ))}
-      </View>
-    );
-  }
-
-  // KPI filter legend
-  if (kpiFilter) {
-    const kpiColor = kpiFilter === 'permitless' ? theme.reciprocity.permitless
-      : kpiFilter === 'shall-issue' ? theme.permitType['shall-issue']
-      : kpiFilter === 'may-issue' ? theme.permitType['may-issue']
-      : theme.warning;
-    const kpiLegend: LegendItem[] = [
-      { color: kpiColor, label: KPI_LEGEND_LABELS[kpiFilter] || kpiFilter },
-      { color: theme.reciprocity.default, label: 'Other States' },
-    ];
-    return (
-      <View style={s.container}>
-        <Text style={s.title}>Highlighted</Text>
-        {kpiLegend.map((item) => (
           <View key={item.label} style={s.row}>
             <View style={[s.colorBox, { backgroundColor: item.color }]} />
             <Text style={s.label}>{item.label}</Text>

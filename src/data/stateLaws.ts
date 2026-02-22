@@ -165,7 +165,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: 15,
     transportRequirements: null,
     ammoRestrictions: null,
-    sourceUrl: 'https://cbi.colorado.gov/sections/firearms',
+    sourceUrl: 'https://cbi.colorado.gov/firearms',
     summary: 'Colorado is a shall-issue state for CCW permits. Open carry is generally legal without a permit. Magazine capacity limited to 15 rounds.',
     keyProvisions: [
       'Shall-issue permits through county sheriff',

@@ -14,17 +14,28 @@ interface MapLegendProps {
   compareMode?: boolean;
   compareStateA?: string | null;
   compareStateB?: string | null;
+  compareHomeColor?: string;
+  compareSelectedColor?: string;
 }
 
-export function MapLegend({ activeState, compareMode, compareStateA, compareStateB }: MapLegendProps) {
+export function MapLegend({
+  activeState,
+  compareMode,
+  compareStateA,
+  compareStateB,
+  compareHomeColor,
+  compareSelectedColor,
+}: MapLegendProps) {
   const { theme } = useTheme();
   const s = makeStyles(theme);
 
   // Compare mode legend
   if (compareMode && compareStateA && compareStateB) {
+    const homeColor = compareHomeColor ?? theme.reciprocity.home;
+    const selectedColor = compareSelectedColor ?? theme.compare.stateB;
     const compareLegend: LegendItem[] = [
-      { color: theme.compare.stateA, label: codeToStateName[compareStateA] || compareStateA },
-      { color: theme.compare.stateB, label: codeToStateName[compareStateB] || compareStateB },
+      { color: homeColor, label: `Home State (${codeToStateName[compareStateA] || compareStateA})` },
+      { color: selectedColor, label: `Selected State (${codeToStateName[compareStateB] || compareStateB})` },
       { color: theme.reciprocity.default, label: 'Other States' },
     ];
     return (

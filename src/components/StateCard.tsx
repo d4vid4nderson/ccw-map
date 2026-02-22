@@ -8,6 +8,7 @@ import { getReciprocitySummary } from '../data/reciprocity';
 interface StateCardProps {
   law: StateLaw;
   onPress: () => void;
+  disabled?: boolean;
 }
 
 function PermitBadge({ type, theme }: { type: StateLaw['permitType']; theme: Theme }) {
@@ -28,13 +29,13 @@ function PermitBadge({ type, theme }: { type: StateLaw['permitType']; theme: The
   );
 }
 
-export function StateCard({ law, onPress }: StateCardProps) {
+export function StateCard({ law, onPress, disabled = false }: StateCardProps) {
   const { theme } = useTheme();
   const reciprocity = getReciprocitySummary(law.stateCode);
   const s = makeStyles(theme);
 
   return (
-    <Pressable style={s.card} onPress={onPress}>
+    <Pressable style={[s.card, disabled && s.cardDisabled]} onPress={onPress} disabled={disabled}>
       <View style={s.header}>
         <View>
           <Text style={s.stateName}>{law.stateName}</Text>
@@ -82,6 +83,9 @@ function makeStyles(theme: Theme) {
       marginBottom: 12,
       borderWidth: 1,
       borderColor: theme.border,
+    },
+    cardDisabled: {
+      opacity: 0.5,
     },
     header: {
       flexDirection: 'row',

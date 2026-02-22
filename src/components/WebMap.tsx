@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { MAPBOX_ACCESS_TOKEN, US_CENTER, US_ZOOM, US_STATES_GEOJSON_URL } from '../constants/mapbox';
+import { MAPBOX_ACCESS_TOKEN, MAPBOX_STYLE_URL, US_CENTER, US_ZOOM, US_STATES_GEOJSON_URL } from '../constants/mapbox';
 import { stateNameToCode } from '../hooks/useMapbox';
 import { useTheme } from '../context/ThemeContext';
 import { Theme } from '../constants/colors';
@@ -46,13 +46,51 @@ interface WebMapProps {
   selectedState: string | null;
   onStatePress: (stateCode: string, shiftKey: boolean) => void;
   getStateColor: (stateCode: string) => string;
+  focusStateCode?: string | null;
+  focusStateRequestId?: number;
+  resetViewRequestId?: number;
 }
 
-export function WebMap({ selectedState, onStatePress, getStateColor }: WebMapProps) {
+type BoundsTuple = [number, number, number, number];
+
+function collectBounds(coords: any, bounds: BoundsTuple): void {
+  if (!Array.isArray(coords) || coords.length === 0) return;
+  if (typeof coords[0] === 'number' && typeof coords[1] === 'number') {
+    const lng = coords[0];
+    const lat = coords[1];
+    bounds[0] = Math.min(bounds[0], lng);
+    bounds[1] = Math.min(bounds[1], lat);
+    bounds[2] = Math.max(bounds[2], lng);
+    bounds[3] = Math.max(bounds[3], lat);
+    return;
+  }
+  for (const child of coords) {
+    collectBounds(child, bounds);
+  }
+}
+
+function getFeatureBounds(feature: any): BoundsTuple | null {
+  const geometry = feature?.geometry;
+  if (!geometry?.coordinates) return null;
+  const bounds: BoundsTuple = [Infinity, Infinity, -Infinity, -Infinity];
+  collectBounds(geometry.coordinates, bounds);
+  if (!Number.isFinite(bounds[0])) return null;
+  return bounds;
+}
+
+export function WebMap({
+  selectedState,
+  onStatePress,
+  getStateColor,
+  focusStateCode = null,
+  focusStateRequestId = 0,
+  resetViewRequestId = 0,
+}: WebMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const onStatePressRef = useRef(onStatePress);
   onStatePressRef.current = onStatePress;
+  const stateBoundsRef = useRef<Record<string, BoundsTuple>>({});
   const [error, setError] = useState<string | null>(null);
   const { theme } = useTheme();
 
@@ -96,7 +134,7 @@ export function WebMap({ selectedState, onStatePress, getStateColor }: WebMapPro
 
       const mapInstance = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/david4nderson/cmlwkl3dj000501s7dymn31sm',
+        style: MAPBOX_STYLE_URL,
         center: US_CENTER,
         zoom: US_ZOOM,
         minZoom: 2,
@@ -114,12 +152,25 @@ export function WebMap({ selectedState, onStatePress, getStateColor }: WebMapPro
 
           // Add stateCode property to each feature
           if (geojson && Array.isArray(geojson.features)) {
+            const nextBounds: Record<string, BoundsTuple> = {};
             for (const feature of geojson.features) {
-              const name = feature.properties?.name;
+              const name = feature.properties?.name || feature.properties?.STATE_NAME;
               if (name) {
-                feature.properties.stateCode = stateNameToCode[name] || '';
+                feature.properties.stateCode =
+                  stateNameToCode[name] ||
+                  feature.properties?.stateCode ||
+                  feature.properties?.STATE_ID ||
+                  '';
+                const stateCode = feature.properties.stateCode;
+                if (stateCode) {
+                  const featureBounds = getFeatureBounds(feature);
+                  if (featureBounds) {
+                    nextBounds[stateCode] = featureBounds;
+                  }
+                }
               }
             }
+            stateBoundsRef.current = nextBounds;
           }
 
           mapInstance.addSource('states', {
@@ -208,6 +259,32 @@ export function WebMap({ selectedState, onStatePress, getStateColor }: WebMapPro
   useEffect(() => {
     updateColors();
   }, [selectedState, updateColors]);
+
+  useEffect(() => {
+    if (!focusStateCode || focusStateRequestId <= 0 || !map.current) return;
+    const bounds = stateBoundsRef.current[focusStateCode];
+    if (!bounds) return;
+    map.current.fitBounds(
+      [
+        [bounds[0], bounds[1]],
+        [bounds[2], bounds[3]],
+      ],
+      {
+        padding: 40,
+        duration: 800,
+        maxZoom: 5.5,
+      }
+    );
+  }, [focusStateCode, focusStateRequestId]);
+
+  useEffect(() => {
+    if (resetViewRequestId <= 0 || !map.current) return;
+    map.current.flyTo({
+      center: US_CENTER,
+      zoom: US_ZOOM,
+      duration: 800,
+    });
+  }, [resetViewRequestId]);
 
   const s = makeStyles(theme);
 

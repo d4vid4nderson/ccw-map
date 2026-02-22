@@ -19,14 +19,32 @@ import { StateComparison } from '../src/components/StateComparison';
 import { LawDetail } from '../src/components/LawDetail';
 import { ReciprocityList } from '../src/components/ReciprocityList';
 
+function lightenHexColor(hex: string, factor: number): string {
+  const safeFactor = Math.max(0, Math.min(1, factor));
+  const normalized = hex.replace('#', '');
+  if (normalized.length !== 6) return hex;
+
+  const r = parseInt(normalized.slice(0, 2), 16);
+  const g = parseInt(normalized.slice(2, 4), 16);
+  const b = parseInt(normalized.slice(4, 6), 16);
+  if ([r, g, b].some((v) => Number.isNaN(v))) return hex;
+
+  const mix = (value: number) => Math.round(value + (255 - value) * safeFactor);
+  const toHex = (value: number) => mix(value).toString(16).padStart(2, '0');
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
 export default function MapScreen() {
-  const { width, height } = useWindowDimensions();
+  const { width } = useWindowDimensions();
   const { theme, homeState } = useTheme();
   const isWide = width > 768;
   const { selectedState, activeState, selectState, getStateColor } = useReciprocityMap();
   const [panelOpen, setPanelOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showAllStates, setShowAllStates] = useState(false);
+  const [focusRequestId, setFocusRequestId] = useState(0);
+  const [focusStateCode, setFocusStateCode] = useState<string | null>(null);
+  const [resetViewRequestId, setResetViewRequestId] = useState(0);
 
   // Compare mode
   const [compareMode, setCompareMode] = useState(false);
@@ -35,6 +53,8 @@ export default function MapScreen() {
 
   // Detail tab for selected state
   const [detailTab, setDetailTab] = useState<'laws' | 'reciprocity'>('laws');
+  const compareHomeColor = theme.reciprocity.home;
+  const compareSelectedColor = lightenHexColor(theme.reciprocity.home, 0.35);
 
   const exitCompareMode = useCallback(() => {
     setCompareMode(false);
@@ -46,13 +66,13 @@ export default function MapScreen() {
   const getMapStateColor = useCallback(
     (stateCode: string): string => {
       if (compareMode && compareStateA && compareStateB) {
-        if (stateCode === compareStateA) return theme.compare.stateA;
-        if (stateCode === compareStateB) return theme.compare.stateB;
+        if (stateCode === compareStateA) return compareHomeColor;
+        if (stateCode === compareStateB) return compareSelectedColor;
         return theme.reciprocity.default;
       }
       return getStateColor(stateCode);
     },
-    [compareMode, compareStateA, compareStateB, getStateColor, theme]
+    [compareMode, compareStateA, compareStateB, compareHomeColor, compareSelectedColor, getStateColor, theme]
   );
 
   const handleStatePress = useCallback(
@@ -84,19 +104,22 @@ export default function MapScreen() {
     [selectedState, selectState, compareMode, compareStateA, exitCompareMode]
   );
 
-  const handleClearSelection = useCallback(() => {
+  const handleBackToStates = useCallback(() => {
     exitCompareMode();
     selectState(null);
-    setPanelOpen(false);
-  }, [selectState, exitCompareMode]);
+    setShowAllStates(true);
+    setResetViewRequestId((id) => id + 1);
+  }, [exitCompareMode, selectState]);
 
-  const handleStartCompare = useCallback(() => {
-    if (selectedState) {
-      setCompareStateA(selectedState);
-      setCompareStateB(null);
-      setCompareMode(true);
-    }
-  }, [selectedState]);
+  const handleClosePanelToMenu = useCallback(() => {
+    exitCompareMode();
+    selectState(null);
+    setFocusStateCode(null);
+    setPanelOpen(false);
+    setShowAllStates(false);
+    setMenuOpen(true);
+    setResetViewRequestId((id) => id + 1);
+  }, [exitCompareMode, selectState]);
 
   const handleShowMap = useCallback(() => {
     setMenuOpen(false);
@@ -121,19 +144,23 @@ export default function MapScreen() {
 
   // When tapping a state from the All States list
   const handleSelectFromList = useCallback((stateCode: string) => {
+    if (homeState && stateCode === homeState) {
+      return;
+    }
     exitCompareMode();
     setShowAllStates(false);
     selectState(stateCode);
     setDetailTab('laws');
-  }, [selectState, exitCompareMode]);
+    setFocusStateCode(stateCode);
+    setFocusRequestId((id) => id + 1);
+  }, [homeState, selectState, exitCompareMode]);
 
   const allStates = getAllStates().sort((a, b) =>
     a.stateName.localeCompare(b.stateName)
   );
 
-  const panelWidth = isWide ? 380 : width * 0.88;
-  const panelMaxHeight = isWide ? height - 100 : height * 0.65;
-  const menuWidth = isWide ? 300 : width * 0.8;
+  const panelDrawerWidth = isWide ? 420 : width * 0.92;
+  const menuDrawerWidth = isWide ? 300 : width * 0.8;
 
   const isComparing =
     compareMode && compareStateA && compareStateB &&
@@ -153,35 +180,32 @@ export default function MapScreen() {
           selectedState={selectedState}
           onStatePress={handleStatePress}
           getStateColor={getMapStateColor}
+          focusStateCode={focusStateCode}
+          focusStateRequestId={focusRequestId}
+          resetViewRequestId={resetViewRequestId}
         />
         <MapLegend
           activeState={activeState}
           compareMode={!!(compareMode && compareStateA && compareStateB)}
           compareStateA={compareStateA}
           compareStateB={compareStateB}
+          compareHomeColor={compareHomeColor}
+          compareSelectedColor={compareSelectedColor}
         />
       </View>
 
-      {/* Floating info panel */}
+      {/* Map/States drawer */}
       {panelOpen && !menuOpen && (
         <View
           style={[
             s.floatingPanel,
             {
-              width: panelWidth,
-              maxHeight: panelMaxHeight,
+              width: panelDrawerWidth,
             },
           ]}
         >
           {/* Panel header */}
           <View style={s.panelHeader}>
-            <Pressable
-              onPress={() => setMenuOpen(true)}
-              style={s.panelMenuButton}
-            >
-              <Text style={s.panelMenuIcon}>☰</Text>
-            </Pressable>
-
             {hasSelectedState ? (
               <View style={s.tabRow}>
                 <Pressable
@@ -222,7 +246,7 @@ export default function MapScreen() {
             )}
 
             <Pressable
-              onPress={() => { setPanelOpen(false); setShowAllStates(false); }}
+              onPress={handleClosePanelToMenu}
               style={s.closePanelButton}
             >
               <Text style={s.closePanelText}>✕</Text>
@@ -244,21 +268,21 @@ export default function MapScreen() {
           {/* Selected state action bar */}
           {hasSelectedState && (
             <View style={s.selectionBar}>
-              <Text style={s.selectionText}>
+              <Pressable
+                onPress={handleBackToStates}
+                style={s.statesButton}
+              >
+                <Text style={s.statesChevron}>‹</Text>
+                <Text style={s.statesButtonText}>States</Text>
+              </Pressable>
+            </View>
+          )}
+
+          {hasSelectedState && (
+            <View style={s.selectedStateHeader}>
+              <Text style={s.selectedStateHeaderText}>
                 {codeToStateName[selectedState!]}
               </Text>
-              <Pressable
-                onPress={handleStartCompare}
-                style={s.compareButton}
-              >
-                <Text style={s.compareButtonText}>Compare</Text>
-              </Pressable>
-              <Pressable
-                onPress={handleClearSelection}
-                style={s.clearButton}
-              >
-                <Text style={s.clearText}>Clear</Text>
-              </Pressable>
             </View>
           )}
 
@@ -293,6 +317,7 @@ export default function MapScreen() {
                 <StateCard
                   key={law.stateCode}
                   law={law}
+                  disabled={!!homeState && law.stateCode === homeState}
                   onPress={() => handleSelectFromList(law.stateCode)}
                 />
               ))}
@@ -315,7 +340,7 @@ export default function MapScreen() {
       {menuOpen && (
         <>
           <Pressable style={s.menuBackdrop} onPress={() => setMenuOpen(false)} />
-          <View style={[s.menuContainer, { width: menuWidth }]}>
+          <View style={[s.menuContainer, { width: menuDrawerWidth }]}>
             <NavMenu
               onClose={() => setMenuOpen(false)}
               onShowMap={handleShowMap}
@@ -357,37 +382,26 @@ function makeStyles(theme: Theme) {
       elevation: 8,
     },
 
-    // Floating panel
+    // Map/States drawer
     floatingPanel: {
       position: 'absolute',
-      top: 12,
-      left: 12,
-      bottom: 12,
-      backgroundColor: theme.overlayStrong,
-      borderRadius: 12,
-      borderWidth: 1,
-      borderColor: theme.border,
+      top: 0,
+      bottom: 0,
+      left: 0,
+      backgroundColor: theme.surface,
       overflow: 'hidden',
-      zIndex: 10,
+      zIndex: 19,
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.15,
-      shadowRadius: 8,
-      elevation: 5,
+      shadowOffset: { width: 4, height: 0 },
+      shadowOpacity: 0.25,
+      shadowRadius: 16,
+      elevation: 8,
     },
     panelHeader: {
       flexDirection: 'row',
       alignItems: 'center',
       borderBottomWidth: 1,
       borderBottomColor: theme.border,
-    },
-    panelMenuButton: {
-      paddingHorizontal: 14,
-      paddingVertical: 12,
-    },
-    panelMenuIcon: {
-      color: theme.text,
-      fontSize: 16,
     },
     tabRow: {
       flex: 1,
@@ -429,26 +443,41 @@ function makeStyles(theme: Theme) {
       borderBottomWidth: 1,
       borderBottomColor: theme.border,
       flexDirection: 'row',
-      justifyContent: 'space-between',
       alignItems: 'center',
+      justifyContent: 'flex-start',
     },
-    selectionText: {
-      color: theme.text,
-      fontSize: 12,
-      fontWeight: '600',
-      flex: 1,
-    },
-    compareButton: {
-      backgroundColor: theme.accent,
+    statesButton: {
+      backgroundColor: theme.name === 'dark'
+        ? 'rgba(10, 20, 34, 0.55)'
+        : 'rgba(21, 40, 67, 0.18)',
       borderRadius: 6,
       paddingHorizontal: 10,
       paddingVertical: 4,
-      marginLeft: 8,
+      flexDirection: 'row',
+      alignItems: 'center',
     },
-    compareButtonText: {
-      color: '#fff',
-      fontSize: 11,
+    statesChevron: {
+      color: theme.textSecondary,
+      fontSize: 14,
       fontWeight: '700',
+      marginRight: 6,
+      lineHeight: 14,
+    },
+    statesButtonText: {
+      color: theme.textSecondary,
+      fontSize: 11,
+      fontWeight: '600',
+    },
+    selectedStateHeader: {
+      paddingHorizontal: 14,
+      paddingTop: 14,
+      paddingBottom: 6,
+    },
+    selectedStateHeaderText: {
+      color: theme.text,
+      fontSize: 34,
+      fontWeight: '700',
+      lineHeight: 36,
     },
     clearButton: {
       backgroundColor: theme.name === 'dark'

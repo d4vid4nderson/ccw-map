@@ -821,7 +821,7 @@ export const stateLaws: Record<string, StateLaw> = {
     magazineRestriction: null,
     transportRequirements: null,
     ammoRestrictions: null,
-    sourceUrl: 'https://www.nh.gov/safety/divisions/nhsp/jib/firearms/',
+    sourceUrl: 'https://www.nhsp.dos.nh.gov/our-services/justice-information-bureau/permits-and-licensing/pistol-and-revolver-licensing',
     summary: 'New Hampshire allows permitless carry for any person 18+ who can legally possess a firearm.',
     keyProvisions: [
       'Permitless carry since 2017',

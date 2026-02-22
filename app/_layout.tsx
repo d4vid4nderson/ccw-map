@@ -10,9 +10,7 @@ function StackLayout() {
       <StatusBar style={themeName === 'dark' ? 'light' : 'dark'} />
       <Stack
         screenOptions={{
-          headerStyle: { backgroundColor: theme.surface },
-          headerTintColor: theme.text,
-          headerTitleStyle: { fontWeight: '700' },
+          headerShown: false,
           contentStyle: { backgroundColor: theme.background },
         }}
       >

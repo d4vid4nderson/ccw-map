@@ -1,4 +1,4 @@
-export type ThemeName = 'light' | 'dark' | 'multicam' | 'multicam-black' | 'multicam-arid' | 'multicam-tropic' | 'multicam-alpine';
+export type ThemeName = 'light' | 'dark' | 'multicam' | 'multicam-black' | 'multicam-arid' | 'multicam-tropic' | 'multicam-alpine' | 'night-ops';
 
 export interface Theme {
   name: ThemeName;
@@ -39,6 +39,7 @@ export interface Theme {
   map: {
     borderColor: string;
     borderOpacity: number;
+    fillOpacity: number;
     fallback: string;
   };
 }
@@ -60,6 +61,7 @@ export const themeList: ThemeMeta[] = [
   { name: 'multicam-arid', label: 'MC Arid', previewBg: '#b3a08a', previewBar: '#988470', previewDots: ['#c4b49e', '#8a7660'] },
   { name: 'multicam-tropic', label: 'MC Tropic', previewBg: '#696c50', previewBar: '#525540', previewDots: ['#3e4030', '#848868'] },
   { name: 'multicam-alpine', label: 'MC Alpine', previewBg: '#f0f1f3', previewBar: '#d0d2d6', previewDots: ['#b8bac0', '#e0e2e6'] },
+  { name: 'night-ops', label: 'Night Ops', previewBg: '#000000', previewBar: '#2d0808', previewDots: ['#ff1100', '#880000'] },
 ];
 
 export const lightTheme: Theme = {
@@ -101,6 +103,7 @@ export const lightTheme: Theme = {
   map: {
     borderColor: '#ffffff',
     borderOpacity: 0.4,
+    fillOpacity: 0.5,
     fallback: '#333355',
   },
 };
@@ -144,6 +147,7 @@ export const darkTheme: Theme = {
   map: {
     borderColor: '#555555',
     borderOpacity: 0.5,
+    fillOpacity: 0.5,
     fallback: '#333333',
   },
 };
@@ -189,6 +193,7 @@ export const multicamTheme: Theme = {
   map: {
     borderColor: '#8a7f6a',
     borderOpacity: 0.4,
+    fillOpacity: 0.5,
     fallback: '#47423a',
   },
 };
@@ -234,6 +239,7 @@ export const multicamBlackTheme: Theme = {
   map: {
     borderColor: '#4a4a44',
     borderOpacity: 0.5,
+    fillOpacity: 0.5,
     fallback: '#1d1d1a',
   },
 };
@@ -279,6 +285,7 @@ export const multicamAridTheme: Theme = {
   map: {
     borderColor: '#b3a08a',
     borderOpacity: 0.5,
+    fillOpacity: 0.5,
     fallback: '#bfae94',
   },
 };
@@ -324,6 +331,7 @@ export const multicamTropicTheme: Theme = {
   map: {
     borderColor: '#6a6e54',
     borderOpacity: 0.4,
+    fillOpacity: 0.5,
     fallback: '#282a20',
   },
 };
@@ -369,7 +377,56 @@ export const multicamAlpineTheme: Theme = {
   map: {
     borderColor: '#b0b2b8',
     borderOpacity: 0.5,
+    fillOpacity: 0.5,
     fallback: '#c4c6cc',
+  },
+};
+
+// ─── Night Ops ── #080302 ───────────────────────────
+// Near-black with deep red accents — military planning under red safelight.
+// Red wavelengths preserve night-adapted vision; map uses dark-v11 base style.
+// States glow brighter red = more permissive carry; near-black = restricted.
+export const nightOpsTheme: Theme = {
+  name: 'night-ops',
+  background: '#000000',
+  surface: '#000000',
+  surfaceLight: '#2d0808',
+  primary: '#cc2200',
+  primaryDark: '#991500',
+  accent: '#ff1100',
+  success: '#bb1a00',
+  warning: '#ee2200',
+  error: '#440000',
+  text: '#ff5844',
+  textSecondary: '#cc3a28',
+  textMuted: '#7a2218',
+  border: '#2a0808',
+  overlay: 'rgba(0, 0, 0, 0.96)',
+  overlayStrong: 'rgba(0, 0, 0, 0.98)',
+  reciprocity: {
+    full: '#cc1800',       // strong red — permit honored
+    partial: '#991200',    // darker red — partial
+    none: '#1e0403',       // near-black — not honored (invisible on dark map)
+    home: '#ff1100',       // vivid red — selected/home state
+    permitless: '#ee1a00', // bright red — permitless carry
+    unrestricted: '#aa1200',
+    default: '#0d0201',    // near-black — unselected default
+  },
+  permitType: {
+    unrestricted: '#ff1100',   // brightest — most permissive
+    'shall-issue': '#cc1800',
+    'may-issue': '#880000',
+    'no-issue': '#380000',     // darkest — most restrictive
+  },
+  compare: {
+    stateA: '#ff1100',
+    stateB: '#cc1800',
+  },
+  map: {
+    borderColor: '#5a1a10',
+    borderOpacity: 0.7,
+    fillOpacity: 0.3,
+    fallback: '#0d0201',
   },
 };
 
@@ -381,6 +438,7 @@ export const themes: Record<ThemeName, Theme> = {
   'multicam-arid': multicamAridTheme,
   'multicam-tropic': multicamTropicTheme,
   'multicam-alpine': multicamAlpineTheme,
+  'night-ops': nightOpsTheme,
 };
 
 // Legacy Colors export for backward compatibility during migration

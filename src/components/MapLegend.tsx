@@ -16,6 +16,8 @@ interface MapLegendProps {
   compareStateB?: string | null;
   compareHomeColor?: string;
   compareSelectedColor?: string;
+  inlineSelectedState?: string | null;
+  selectedStateColor?: string;
 }
 
 export function MapLegend({
@@ -25,6 +27,8 @@ export function MapLegend({
   compareStateB,
   compareHomeColor,
   compareSelectedColor,
+  inlineSelectedState,
+  selectedStateColor = '#80c4ff',
 }: MapLegendProps) {
   const { theme } = useTheme();
   const s = makeStyles(theme);
@@ -58,8 +62,13 @@ export function MapLegend({
     { color: theme.permitType['no-issue'], label: 'Restrictive' },
   ];
 
+  const selectedLabel = inlineSelectedState
+    ? `Selected: ${codeToStateName[inlineSelectedState] || inlineSelectedState}`
+    : 'Home State';
+  const selectedColor = inlineSelectedState ? selectedStateColor : theme.reciprocity.home;
+
   const reciprocityLegend: LegendItem[] = [
-    { color: theme.reciprocity.home, label: 'Home State' },
+    { color: selectedColor, label: selectedLabel },
     { color: theme.reciprocity.full, label: 'Full Reciprocity' },
     { color: theme.reciprocity.permitless, label: 'Permitless (No Permit Needed)' },
     { color: theme.reciprocity.none, label: 'No Reciprocity' },

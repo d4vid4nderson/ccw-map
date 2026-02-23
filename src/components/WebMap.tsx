@@ -21,6 +21,9 @@ class RecenterControl implements mapboxgl.IControl {
     button.type = 'button';
     button.title = 'Reset view';
     button.setAttribute('aria-label', 'Reset view');
+    button.style.display = 'flex';
+    button.style.alignItems = 'center';
+    button.style.justifyContent = 'center';
     button.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>
     </svg>`;
@@ -45,10 +48,17 @@ class RecenterControl implements mapboxgl.IControl {
 interface WebMapProps {
   selectedState: string | null;
   onStatePress: (stateCode: string, shiftKey: boolean) => void;
+  onDeselect?: () => void;
   getStateColor: (stateCode: string) => string;
   focusStateCode?: string | null;
   focusStateRequestId?: number;
   resetViewRequestId?: number;
+  leftOffset?: number;
+  highlightStateCode?: string | null;
+  mapStyleUrl?: string;
+  connectStateA?: string | null;
+  connectStateB?: string | null;
+  onLineMidpoint?: (x: number, y: number) => void;
 }
 
 type BoundsTuple = [number, number, number, number];
@@ -78,21 +88,110 @@ function getFeatureBounds(feature: any): BoundsTuple | null {
   return bounds;
 }
 
+const CONNECTION_SOURCE = 'connection-line';
+const CONNECTION_LAYER = 'connection-line-layer';
+
 export function WebMap({
   selectedState,
   onStatePress,
+  onDeselect,
   getStateColor,
   focusStateCode = null,
   focusStateRequestId = 0,
   resetViewRequestId = 0,
+  leftOffset = 0,
+  highlightStateCode = null,
+  mapStyleUrl,
+  connectStateA = null,
+  connectStateB = null,
+  onLineMidpoint,
 }: WebMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const onStatePressRef = useRef(onStatePress);
   onStatePressRef.current = onStatePress;
+  const onDeselectRef = useRef(onDeselect);
+  onDeselectRef.current = onDeselect;
   const stateBoundsRef = useRef<Record<string, BoundsTuple>>({});
+  const onLineMidpointRef = useRef(onLineMidpoint);
+  onLineMidpointRef.current = onLineMidpoint;
   const [error, setError] = useState<string | null>(null);
   const { theme } = useTheme();
+
+  // Live refs so callbacks always see current values without stale closure
+  const geojsonDataRef = useRef<any>(null);
+  const getStateColorRef = useRef(getStateColor);
+  getStateColorRef.current = getStateColor;
+  const themeRef = useRef(theme);
+  themeRef.current = theme;
+  const highlightStateCodeRef = useRef(highlightStateCode);
+  highlightStateCodeRef.current = highlightStateCode;
+  const loadedStyleUrlRef = useRef<string>('');
+  const resolvedStyleUrl = mapStyleUrl ?? MAPBOX_STYLE_URL;
+  const resolvedStyleUrlRef = useRef(resolvedStyleUrl);
+  resolvedStyleUrlRef.current = resolvedStyleUrl;
+
+  // Adds/restores state source + layers onto a freshly-loaded map style.
+  // Uses refs so it always reads current theme/color values.
+  const setupStateLayers = useCallback((m: mapboxgl.Map) => {
+    const geojson = geojsonDataRef.current;
+    if (!geojson) return;
+
+    try { if (m.getLayer('state-fills')) m.removeLayer('state-fills'); } catch (_) {}
+    try { if (m.getLayer('state-borders')) m.removeLayer('state-borders'); } catch (_) {}
+    try { if (m.getSource('states')) m.removeSource('states'); } catch (_) {}
+
+    // Hide country/continent labels so they don't cover state names
+    const styleLayers = m.getStyle().layers || [];
+    for (const layer of styleLayers) {
+      if (layer.id.includes('country-label') || layer.id.includes('continent-label')) {
+        m.setLayoutProperty(layer.id, 'visibility', 'none');
+      }
+    }
+
+    m.addSource('states', { type: 'geojson', data: geojson });
+
+    const colorExpression: any[] = ['match', ['get', 'stateCode']];
+    for (const code of Object.values(stateNameToCode)) {
+      colorExpression.push(code, getStateColorRef.current(code));
+    }
+    colorExpression.push(themeRef.current.reciprocity.default);
+
+    const hsc = highlightStateCodeRef.current;
+    const baseOpacity = themeRef.current.map.fillOpacity;
+    // Highlighted state uses a lower opacity so the map is visible through the fill
+    const opacityExpression: any = hsc
+      ? ['match', ['get', 'stateCode'], hsc, 0.4, baseOpacity]
+      : baseOpacity;
+
+    m.addLayer({
+      id: 'state-fills',
+      type: 'fill',
+      source: 'states',
+      paint: {
+        'fill-color': colorExpression as any,
+        'fill-opacity': opacityExpression as any,
+      },
+    });
+
+    m.addLayer({
+      id: 'state-borders',
+      type: 'line',
+      source: 'states',
+      paint: {
+        'line-color': themeRef.current.map.borderColor,
+        'line-width': 1,
+        'line-opacity': themeRef.current.map.borderOpacity,
+      },
+    });
+
+    m.on('mouseenter', 'state-fills', () => {
+      m.getCanvas().style.cursor = 'pointer';
+    });
+    m.on('mouseleave', 'state-fills', () => {
+      m.getCanvas().style.cursor = '';
+    });
+  }, []);
 
   const updateColors = useCallback(() => {
     if (!map.current || !map.current.getSource('states')) return;
@@ -103,12 +202,19 @@ export function WebMap({
     }
     colorExpression.push(theme.reciprocity.default);
 
+    const hsc = highlightStateCode;
+    const baseOpacity = theme.map.fillOpacity;
+    const opacityExpression: any = hsc
+      ? ['match', ['get', 'stateCode'], hsc, 0.4, baseOpacity]
+      : baseOpacity;
+
     try {
       map.current.setPaintProperty('state-fills', 'fill-color', colorExpression as any);
+      map.current.setPaintProperty('state-fills', 'fill-opacity', opacityExpression);
     } catch (e) {
       // Layer may not be ready yet
     }
-  }, [getStateColor, theme]);
+  }, [getStateColor, theme, highlightStateCode]);
 
   // Update border colors when theme changes
   useEffect(() => {
@@ -121,6 +227,7 @@ export function WebMap({
     }
   }, [theme]);
 
+  // Map initialisation — deps intentionally [] — do NOT modify
   useEffect(() => {
     if (Platform.OS !== 'web' || !mapContainer.current) return;
 
@@ -134,7 +241,7 @@ export function WebMap({
 
       const mapInstance = new mapboxgl.Map({
         container: mapContainer.current,
-        style: MAPBOX_STYLE_URL,
+        style: resolvedStyleUrlRef.current,
         center: US_CENTER,
         zoom: US_ZOOM,
         minZoom: 2,
@@ -150,7 +257,7 @@ export function WebMap({
           const response = await fetch(US_STATES_GEOJSON_URL);
           const geojson = await response.json();
 
-          // Add stateCode property to each feature
+          // Add stateCode property to each feature and compute bounds
           if (geojson && Array.isArray(geojson.features)) {
             const nextBounds: Record<string, BoundsTuple> = {};
             for (const feature of geojson.features) {
@@ -173,64 +280,21 @@ export function WebMap({
             stateBoundsRef.current = nextBounds;
           }
 
-          mapInstance.addSource('states', {
-            type: 'geojson',
-            data: geojson,
-          });
+          geojsonDataRef.current = geojson;
+          setupStateLayers(mapInstance);
+          loadedStyleUrlRef.current = resolvedStyleUrlRef.current;
 
-          // Build initial color expression
-          const colorExpression: any[] = ['match', ['get', 'stateCode']];
-          for (const code of Object.values(stateNameToCode)) {
-            colorExpression.push(code, getStateColor(code));
-          }
-          colorExpression.push(theme.reciprocity.default);
-
-          // Hide country labels (e.g. "United States") so they don't cover states
-          const styleLayers = mapInstance.getStyle().layers || [];
-          for (const layer of styleLayers) {
-            if (layer.id.includes('country-label') || layer.id.includes('continent-label')) {
-              mapInstance.setLayoutProperty(layer.id, 'visibility', 'none');
-            }
-          }
-
-          mapInstance.addLayer({
-            id: 'state-fills',
-            type: 'fill',
-            source: 'states',
-            paint: {
-              'fill-color': colorExpression as any,
-              'fill-opacity': 0.5,
-            },
-          });
-
-          mapInstance.addLayer({
-            id: 'state-borders',
-            type: 'line',
-            source: 'states',
-            paint: {
-              'line-color': theme.map.borderColor,
-              'line-width': 1,
-              'line-opacity': theme.map.borderOpacity,
-            },
-          });
-
-          // Hover effect via cursor change
-          mapInstance.on('mouseenter', 'state-fills', () => {
-            mapInstance.getCanvas().style.cursor = 'pointer';
-          });
-
-          mapInstance.on('mouseleave', 'state-fills', () => {
-            mapInstance.getCanvas().style.cursor = '';
-          });
-
-          // Click handler
-          mapInstance.on('click', 'state-fills', (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.GeoJSONFeature[] }) => {
-            if (e.features && e.features.length > 0) {
-              const stateCode = e.features[0].properties?.stateCode;
+          // Click handler — state click OR deselect when clicking empty map
+          mapInstance.on('click', (e: mapboxgl.MapMouseEvent) => {
+            const features = mapInstance.queryRenderedFeatures(e.point, { layers: ['state-fills'] });
+            if (features.length > 0) {
+              const stateCode = features[0].properties?.stateCode;
               if (stateCode) {
                 const shiftKey = (e.originalEvent as MouseEvent)?.shiftKey ?? false;
                 onStatePressRef.current(stateCode, shiftKey);
               }
+            } else {
+              onDeselectRef.current?.();
             }
           });
         } catch (err) {
@@ -255,6 +319,20 @@ export function WebMap({
     }
   }, []);
 
+  // Switch map style when the theme changes (e.g. Night Ops uses a dark base style)
+  useEffect(() => {
+    if (!map.current || !loadedStyleUrlRef.current) return;
+    if (resolvedStyleUrl === loadedStyleUrlRef.current) return;
+
+    loadedStyleUrlRef.current = resolvedStyleUrl;
+    map.current.setStyle(resolvedStyleUrl);
+
+    map.current.once('style.load', () => {
+      if (!map.current) return;
+      setupStateLayers(map.current);
+    });
+  }, [resolvedStyleUrl, setupStateLayers]);
+
   // Update colors when selection changes
   useEffect(() => {
     updateColors();
@@ -270,12 +348,12 @@ export function WebMap({
         [bounds[2], bounds[3]],
       ],
       {
-        padding: 40,
+        padding: { top: 40, bottom: 40, left: leftOffset + 40, right: 40 },
         duration: 800,
         maxZoom: 5.5,
       }
     );
-  }, [focusStateCode, focusStateRequestId]);
+  }, [focusStateCode, focusStateRequestId, leftOffset]);
 
   useEffect(() => {
     if (resetViewRequestId <= 0 || !map.current) return;
@@ -285,6 +363,171 @@ export function WebMap({
       duration: 800,
     });
   }, [resetViewRequestId]);
+
+  // Connection line effect — draws an animated dashed line between two state centroids
+  useEffect(() => {
+    if (!map.current) return;
+
+    const m = map.current;
+
+    // Helper: remove existing connection source and layer
+    function removeConnection() {
+      try {
+        if (m.getLayer(CONNECTION_LAYER)) {
+          m.removeLayer(CONNECTION_LAYER);
+        }
+      } catch (_) {}
+      try {
+        if (m.getSource(CONNECTION_SOURCE)) {
+          m.removeSource(CONNECTION_SOURCE);
+        }
+      } catch (_) {}
+    }
+
+    // Both states must be set and their bounds must be known
+    if (!connectStateA || !connectStateB) {
+      removeConnection();
+      return;
+    }
+
+    const boundsA = stateBoundsRef.current[connectStateA];
+    const boundsB = stateBoundsRef.current[connectStateB];
+
+    // Bounds may not be loaded yet if the map hasn't finished its initial load.
+    // We check the 'states' source as a proxy for the GeoJSON having loaded.
+    if (!boundsA || !boundsB) {
+      // Retry once the map has loaded if it isn't yet
+      if (!m.getSource('states')) {
+        const onLoad = () => {
+          drawConnection();
+        };
+        m.once('idle', onLoad);
+        return () => {
+          m.off('idle', onLoad);
+        };
+      }
+      return;
+    }
+
+    function drawConnection() {
+      if (!map.current) return;
+      const mRef = map.current;
+
+      const bA = stateBoundsRef.current[connectStateA!];
+      const bB = stateBoundsRef.current[connectStateB!];
+      if (!bA || !bB) return;
+
+      const lngA = (bA[0] + bA[2]) / 2;
+      const latA = (bA[1] + bA[3]) / 2;
+      const lngB = (bB[0] + bB[2]) / 2;
+      const latB = (bB[1] + bB[3]) / 2;
+
+      const midLng = (lngA + lngB) / 2;
+      const midLat = (latA + latB) / 2;
+
+      const geojsonData: GeoJSON.Feature<GeoJSON.LineString> = {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'LineString',
+          coordinates: [
+            [lngA, latA],
+            [lngB, latB],
+          ],
+        },
+      };
+
+      // Remove stale source/layer before (re)adding
+      try {
+        if (mRef.getLayer(CONNECTION_LAYER)) mRef.removeLayer(CONNECTION_LAYER);
+      } catch (_) {}
+      try {
+        if (mRef.getSource(CONNECTION_SOURCE)) mRef.removeSource(CONNECTION_SOURCE);
+      } catch (_) {}
+
+      mRef.addSource(CONNECTION_SOURCE, {
+        type: 'geojson',
+        data: geojsonData,
+      });
+
+      mRef.addLayer({
+        id: CONNECTION_LAYER,
+        type: 'line',
+        source: CONNECTION_SOURCE,
+        layout: {
+          'line-cap': 'round',
+          'line-join': 'round',
+        },
+        paint: {
+          'line-color': '#ffffff',
+          'line-opacity': 0.85,
+          'line-width': 2,
+          'line-dasharray': [3, 2],
+        },
+      });
+
+      // Helper to project midpoint to screen and fire callback
+      function reportMidpoint() {
+        if (!map.current) return;
+        try {
+          const point = map.current.project([midLng, midLat]);
+          onLineMidpointRef.current?.(point.x, point.y);
+        } catch (_) {}
+      }
+
+      // Compute combined bounds for both states
+      const combinedSW: [number, number] = [
+        Math.min(bA[0], bB[0]),
+        Math.min(bA[1], bB[1]),
+      ];
+      const combinedNE: [number, number] = [
+        Math.max(bA[2], bB[2]),
+        Math.max(bA[3], bB[3]),
+      ];
+
+      mRef.fitBounds([combinedSW, combinedNE], {
+        padding: {
+          top: 60,
+          bottom: 60,
+          left: leftOffset + 60,
+          right: 60,
+        },
+        duration: 900,
+      });
+
+      // After fitBounds settles, report midpoint; also track on subsequent moves
+      mRef.once('moveend', () => {
+        reportMidpoint();
+        // Re-report whenever the user pans/zooms while connection is active
+        mRef.on('moveend', reportMidpoint);
+      });
+    }
+
+    // The map style may still be loading; wait for idle before drawing
+    if (!m.isStyleLoaded()) {
+      const onIdle = () => drawConnection();
+      m.once('idle', onIdle);
+      return () => {
+        m.off('idle', onIdle);
+      };
+    }
+
+    drawConnection();
+
+    return () => {
+      if (!map.current) return;
+      try {
+        if (map.current.getLayer(CONNECTION_LAYER)) {
+          map.current.removeLayer(CONNECTION_LAYER);
+        }
+      } catch (_) {}
+      try {
+        if (map.current.getSource(CONNECTION_SOURCE)) {
+          map.current.removeSource(CONNECTION_SOURCE);
+        }
+      } catch (_) {}
+    };
+  }, [connectStateA, connectStateB, leftOffset]);
 
   const s = makeStyles(theme);
 
